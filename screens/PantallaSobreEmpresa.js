@@ -105,7 +105,7 @@ export default function PantallaSobreEmpresa({ navigation }) {
 
           <TouchableOpacity
             style={styles.contactoItem}
-            onPress={() => llamarTelefono("+50588888888")}
+            onPress={() => llamarTelefono("+50582310640")}
           >
             <Ionicons name="call-outline" size={24} color="#8B4513" />
             <View style={styles.contactoTexto}>
