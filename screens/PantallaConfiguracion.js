@@ -22,7 +22,6 @@ export default function PantallaConfiguracion({ navigation }) {
   const [notificaciones, setNotificaciones] = useState(true);
   const [notificacionesPedidos, setNotificacionesPedidos] = useState(true);
   const [notificacionesOfertas, setNotificacionesOfertas] = useState(false);
-  const [temaOscuro, setTemaOscuro] = useState(false);
   const [mostrarCambiarContraseña, setMostrarCambiarContraseña] = useState(false);
   const [contraseñaActual, setContraseñaActual] = useState('');
   const [contraseñaNueva, setContraseñaNueva] = useState('');

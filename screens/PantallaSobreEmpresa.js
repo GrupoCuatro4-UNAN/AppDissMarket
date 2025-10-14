@@ -40,7 +40,7 @@ export default function PantallaSobreEmpresa({ navigation }) {
   // Función para abrir ubicación en mapas
   const abrirMapa = () => {
     const direccion = "El ayote, Nicaragua"; 
-    const url = "https://maps.apple.com/p/wt-xZHS_FSaac.z";
+    const url = "https://maps.apple/p/fd70AtBXkQMNyu";
     abrirEnlace(url, "el mapa");
   };
 
@@ -233,7 +233,7 @@ export default function PantallaSobreEmpresa({ navigation }) {
             <TouchableOpacity
               style={styles.redSocial}
               onPress={() =>
-                abrirEnlace("https://facebook.com/dissmar", "Facebook")
+                abrirEnlace("https://www.facebook.com/share/1A31joPfv3/?mibextid=wwXIfr", "Facebook")
               }
             >
               <Ionicons name="logo-facebook" size={24} color="#3b5998" />
@@ -243,7 +243,7 @@ export default function PantallaSobreEmpresa({ navigation }) {
             <TouchableOpacity
               style={styles.redSocial}
               onPress={() =>
-                abrirEnlace("https://instagram.com/dissmar", "Instagram")
+                abrirEnlace("https://www.instagram.com/eemile_?igsh=cDk2ZWs3dWgxZW1l&utm_source=qr", "Instagram")
               }
             >
               <Ionicons name="logo-instagram" size={24} color="#e4405f" />
