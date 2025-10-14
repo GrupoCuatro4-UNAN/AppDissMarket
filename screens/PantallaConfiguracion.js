@@ -195,20 +195,6 @@ export default function PantallaConfiguracion({ navigation }) {
     }
   };
 
-  const limpiarDatos = () => {
-    Alert.alert(
-      'Limpiar datos de la aplicación',
-      '¿Deseas eliminar el caché y datos temporales? Esto puede mejorar el rendimiento.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Limpiar', 
-          onPress: () => Alert.alert('Completado', 'Datos limpiados correctamente')
-        }
-      ]
-    );
-  };
-
   return (
     <SafeAreaView style={styles.contenedor}>
       {/* Header */}
@@ -351,17 +337,6 @@ export default function PantallaConfiguracion({ navigation }) {
         </View>
 
       
-
-        {/* Datos y almacenamiento */}
-        <View style={styles.seccion}>
-          <Text style={styles.tituloSeccion}>Datos y almacenamiento</Text>
-          
-          <TouchableOpacity style={styles.opcion} onPress={limpiarDatos}>
-            <Ionicons name="refresh-outline" size={24} color="#8B4513" />
-            <Text style={styles.textoOpcion}>Limpiar caché</Text>
-            <Ionicons name="chevron-forward-outline" size={20} color="#ccc" />
-          </TouchableOpacity>
-        </View>
 
         {/* Zona peligrosa */}
         <View style={[styles.seccion, styles.seccionPeligrosa]}>
