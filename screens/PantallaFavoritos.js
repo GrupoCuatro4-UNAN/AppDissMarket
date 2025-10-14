@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     fontStyle: 'italic',
-    marginLeft: 50,
+    marginLeft: 15,
     textAlign: 'center',
    
   },

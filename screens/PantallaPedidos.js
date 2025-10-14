@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     fontStyle: 'italic',
-    marginLeft: 50,
+    marginLeft: 10,
      textAlign: 'center',
   },
   tituloContainer: {

@@ -75,58 +75,22 @@ export default function PantallaConfiguracion({ navigation }) {
     }
   };
 
-  const eliminarCuenta = () => {
-    Alert.alert(
-      '¿Eliminar cuenta?',
-      'Esta acción no se puede deshacer. Se eliminarán todos tus datos, pedidos e información personal.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Eliminar', 
-          style: 'destructive',
-          onPress: () => confirmarEliminacion()
-        }
-      ]
-    );
-  };
-
-  const confirmarEliminacion = () => {
-    Alert.alert(
-      'Confirmación final',
-      'Esta es tu última oportunidad. ¿Estás completamente seguro de que deseas eliminar tu cuenta permanentemente?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Sí, eliminar',
-          style: 'destructive',
-          onPress: () => solicitarConfirmacionTexto()
-        }
-      ]
-    );
-  };
-
-  const solicitarConfirmacionTexto = () => {
-    Alert.prompt(
-      'Confirmar eliminación',
-      'Escribe "ELIMINAR" para confirmar que deseas eliminar permanentemente tu cuenta:',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar cuenta',
-          style: 'destructive',
-          onPress: (texto) => {
-            if (texto === 'ELIMINAR') {
-              eliminarCuentaCompleta();
-            } else {
-              Alert.alert('Error', 'Debes escribir "ELIMINAR" exactamente para confirmar');
-            }
-          }
-        }
-      ],
-      'plain-text'
-    );
-  };
-
+ const eliminarCuenta = () => {
+  Alert.alert(
+    '¿Eliminar cuenta?',
+    'Esta acción no se puede deshacer. Se eliminarán todos tus datos, pedidos e información personal.',
+    [
+      { text: 'Cancelar', style: 'cancel' },
+      { 
+        text: 'Eliminar', 
+        style: 'destructive',
+        onPress: () => eliminarCuentaCompleta()
+      }
+    ]
+  );
+};
+ 
+  
   const eliminarCuentaCompleta = async () => {
     if (!usuarioActual) {
       Alert.alert('Error', 'No hay usuario autenticado');
