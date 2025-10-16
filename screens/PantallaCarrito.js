@@ -186,150 +186,150 @@ const confirmarPedidoConDireccion = (direccionEnvio) => {
               <Ionicons name="remove" size={20} color="#8B4513" />
             </TouchableOpacity>
             
-            <Text style={styles.textoCantidad}>{item.cantidad}</Text>
+            <Texto estilo={estilos. .textoCantidad}>{artículo. .cantidad}</Texto>
             
-            <TouchableOpacity 
-              style={styles.botonCantidad}
-              onPress={() => aumentarCantidad(item)}
+            <Opacidad táctil 
+              estilo={estilos. .botonCantidad}
+              en prensa={() => aumentarCantidad(artículo)}
             >
-              <Ionicons name="add" size={20} color="#8B4513" />
-            </TouchableOpacity>
-          </View>
+              <Ionicons nombre="añadir" tamaño={20} color="#8B4513" />
+            </Opacidad táctil>
+          </Ver>
 
           {/* Botón eliminar */}
-          <TouchableOpacity 
-            style={styles.botonEliminar}
-            onPress={() => removerDelCarrito(item.id)}
+          <Opacidad táctil 
+            estilo={estilos. .botonEliminar}
+            en prensa={() => removedorDelCarrito(artículo.id)}
           >
-            <Ionicons name="trash-outline" size={20} color="#ff4757" />
-          </TouchableOpacity>
-        </View>
-      </View>
+            <Ionicons nombre="esquema basura" tamaño={20} color="#ff4757" />
+          </Opacidad táctil>
+        </Ver>
+      </Ver>
 
       {/* Subtotal */}
-      <View style={styles.subtotalContainer}>
-        <Text style={styles.subtotal}>C$ {(item.precio * item.cantidad).toFixed(2)}</Text>
-      </View>
-    </View>
+      <Ver estilo={estilos. .subtotalContainer}>
+        <Texto estilo={estilos. .subtotal}>C$ {(artículo.precio * artículo.cantidad).toFixed(2)}</Texto>
+      </Ver>
+    </Ver>
   );
 
-  return (
-    <SafeAreaView style={styles.contenedor}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-        <LogoDissmar size="small" showText={false} style={{ marginRight: 10 }} />
-          <Text style={styles.logoNombre}>DISSMAR</Text>
-        </View>
-        <Text style={styles.eslogan}>Tu Distribuidora de Confianza</Text>
-      </View>
+  retorno (
+    <Vista de área segura estilo={estilos. .contenedor}>
+      {/* Encabezado */}
+      <Ver estilo={estilos. .encabezado}>
+        <Ver estilo={estilos. .logoContenedor}>
+        <LogotipoDissmar tamaño="pequeño" mostrar texto={falso} estilo={{ margenDerecho: 10 }} />
+          <Texto estilo={estilos. .logoNombre}>DISSMAR</Texto>
+        </Ver>
+        <Texto estilo={estilos. . .eslogan}>Tu Distribuidora de Confianza</Texto>
+      </Ver>
 
-      {/* Título de la sección */}
-      <View style={styles.tituloContainer}>
-        <Text style={styles.titulo}>Mi Carrito</Text>
-        <Text style={styles.subtitulo}>
-          {itemsCarrito.length === 1 ? '1 Producto' : `${itemsCarrito.length} Productos`}
-        </Text>
-      </View>
+      {/* Típulo de la sección */}
+      <Ver estilo={estilos. . .tituloContenedor}>
+        <Texto estilo={estilos. . .titulo}>Mi Carrito</Texto>
+        <Texto estilo={estilos. . .subtípulo}>
+          {artículosCarrito.longitud === 1 ? '1 Producto' : `${artículosCarrito.longitud} Productos`}
+        </Texto>
+      </Ver>
 
       {/* Contenido principal */}
-      {itemsCarrito.length === 0 ? (
-        <View style={styles.carritoVacio}>
-          <Ionicons name="cart-outline" size={80} color="#ccc" />
-          <Text style={styles.textoCarritoVacio}>Tu carrito está vacío</Text>
-          <Text style={styles.subtextoCarritoVacio}>
+      {artículosCarrito.longitud === 0 ? (
+        <Ver estilo={estilos. .carroVacio}>
+          <Ionicons nombre="esquema del carro" tamaño={80} color="#ccc" />
+          <Texto estilo={estilos. .textoCarritoVacio}>Tu carro está vacío</Texto>
+          <Texto estilo={estilos. . . .subtextoCarritoVacio}>
             Agrega productos desde el catálogo
-          </Text>
-        </View>
+          </Texto>
+        </Ver>
       ) : (
-        <View style={styles.contenidoCarrito}>
+        <Ver estilo={estilos.contenidoCarrito}>
           {/* Lista de productos */}
-          <FlatList
-            data={itemsCarrito}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <ItemCarrito item={item} />}
-            contentContainerStyle={styles.listaCarrito}
-            showsVerticalScrollIndicator={false}
-          />
+          <Lista plana
+            datos={artículosCarrito}
+            Extractor de claves={(articulo) => articulo.id}
+            elemento de renderizado={({ articulo }) => <ArtículoCarrito articulo={articulo} />}
+            contenidoEstilo de contenedor={estilos. .listaCarrito}
+            música el indicador de desplazamiento vertical={falso}
+ />
 
           {/* Resumen del pedido */}
-          <View style={styles.resumenPedido}>
-            <Text style={styles.tituloResumen}>Resumen del pedido</Text>
+          <Ver estilo={estilos. . . .resumenPedido}>
+            <Texto estilo={estilos. . .títuloResumen}>Resumen del pedido</Texto>
             
-            <View style={styles.filaResumen}>
-              <Text style={styles.textoResumen}>
-                Subtotal ({itemsCarrito.length} productos)
-              </Text>
-              <Text style={styles.textoResumen}>C$ {calcularTotal().toFixed(2)}</Text>
-            </View>
+            <Ver estilo={estilos. . . .filaResumen}>
+              <Texto estilo={estilos. . .textoResumen}>
+                Subtotal ({artículosCarrito. .longitud} productos)
+              </Texto>
+              <Texto estilo={estilos. . . .textoResumen}>C$ {calcularTotal().toFixed(2)}</Texto>
+            </Ver>
 
-            <View style={styles.filaResumen}>
-              <Text style={styles.textoResumen}>Envío</Text>
-              <Text style={styles.textoResumen}>Dirección</Text>
-            </View>
+            <Ver estilo={estilos. . . .filaResumen}>
+              <Texto estilo={estilos. . .textoResumen}>Medio ambiente</Texto>
+              <Texto estilo={estilos. . . .textoResumen}>Dirección</Texto>
+            </Ver>
 
-            <View style={styles.separador} />
+            <Ver estilo={estilos. .separador} />
 
-            <View style={styles.filaTotal}>
-              <Text style={styles.textoTotal}>Total</Text>
-              <Text style={styles.textoTotal}>C$ {calcularTotal().toFixed(2)}</Text>
-            </View>
+            <Ver estilo={estilos. . . .filaTotal}>
+              <Texto estilo={estilos. . .textoTotal}>Total</Texto>
+              <Texto estilo={estilos. . . .textoTotal}>C$ {calcularTotal().toFixed(2)}</Texto>
+            </Ver>
 
             {/* Botón realizar pedido */}
-            <TouchableOpacity 
-              style={[
-                styles.botonRealizarPedido, 
-                (realizandoPedido || cargandoCarrito) && styles.botonDeshabilitado
+            <Opacidad táctil 
+              estilo={[
+                estilos.botonRealizarPedido, 
+                (realizandoPedido || cargandoCarrito) && estilos.botonDeshabilitado
               ]}
-              onPress={manejarRealizarPedido}
-              disabled={realizandoPedido || cargandoCarrito}
+              en prensa={manejarRealizarPedido}
+              incapacitado={realizandoPedido || cargandoCarrito}
             >
               {realizandoPedido ? (
-                <ActivityIndicator color="#fff" />
+                <Indicador de actividad color="#fff" />
               ) : (
-                <Text style={styles.textoBotonRealizar}>Realizar Pedido</Text>
+                <Texto estilo={estilos.textoBotonRealizar}>Realizar Pedido</Texto>
               )}
-            </TouchableOpacity>
-          </View>
-        </View>
+            </Opacidad táctil>
+          </Ver>
+        </Ver>
       )}
     </SafeAreaView>
-  );
+ );
 }
 
-const styles = StyleSheet.create({
+const estilos = Hoja de estilo.crear({
   contenedor: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    color de fondo: '#f5f5f5',
   },
-  header: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+  encabezado: {
+    color de fondo: '#fff',
+    RellenoHorizontal: 20,
+    RellenoVertical: 15,
+    color sombra: '#000',
+    desplazamiento de sombra: { ancho: 0, alta: 2 },
+    sombraOpacidad: 0,1,
+    sombraRadio: 3.84,
+    elevación: 5,
   },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center', 
-    marginBottom: 5,
+  logotipoContenedor: {
+    dirección flexible: 'fila',
+    alinear elementos: 'centro',
+    justificarContenido: 'centro', 
+    margenInferior: 5,
   },
   logoCirculo: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#000',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
+    ancho: 40,
+    altura: 40,
+    radio fronterizo: 20,
+    color de fondo: '#000',
+    justificarContenido: 'centro',
+    alinear elementos: 'centro',
+    margenDerecho: 10,
   },
   logoTexto: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    tamaño de fuente: 20,
+    fontWeight: 'audaz',
     color: '#fff',
   },
   logoNombre: {
@@ -393,130 +393,130 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     marginBottom: 15,
     flexDirection: 'row',
-    padding: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    acolchado: 15,
+    color sombra: '#000',
+    desplazamiento de sombra: { ancho: 0, altura: 2 },
+    sombraOpacidad: 0,1,
+    sombraRadio: 3.84,
+    elevación: 5,
   },
-  contenedorImagen: {
-    width: 80,
-    height: 80,
-    marginRight: 15,
+  ContenedorImagen: {
+    ancho: 80,
+    alta: 80,
+    Margen Derecho: 15,
   },
-  imagenProducto: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 10,
-    resizeMode: 'cover',
+  producto de imagen: {
+    ancho: '100%',
+    alta: '100%',
+    radio fronterizo: 10,
+    cambiar tamaño de modo: 'cubierta',
   },
-  imagenPlaceholder: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#f0f0f0',
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+  marcador de posición de imagen: {
+    ancho: '100%',
+    alta: '100%',
+    color de fondo: '#f0f0f0',
+    radio fronterizo: 10,
+    justificarContenido: 'centro',
+    alinear elementos: 'centro',
   },
   infoProducto: {
     flex: 1,
-    justifyContent: 'space-between',
+    justificarContenido: 'espacio intermedio',
   },
   nombreProducto: {
-    fontSize: 16,
+    tamaño de fuente: 16,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 5,
+    margenInferior: 5,
   },
   precioProducto: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    tamaño de fuente: 18,
+    fontWeight: 'audaz',
     color: '#8B4513',
-    marginBottom: 10,
+    margenInferior: 10,
   },
-  controlesContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  ControlesContenedor: {
+    dirección flexible: 'fila',
+    justificarContenido: 'espacio intermedio',
+    alinear elementos: 'centro',
   },
   controlesCantidad: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f0f0f0',
-    borderRadius: 20,
-    paddingHorizontal: 5,
+    dirección flexible: 'fila',
+    alinear elementos: 'centro',
+    color de fondo: '#f0f0f0',
+    radio fronterizo: 20,
+    RellenoHorizontal: 5,
   },
   botonCantidad: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 5,
+    ancho: 30,
+    alta: 30,
+    radio fronterizo: 15,
+    color de fondo: '#fff',
+    justificarContenido: 'centro',
+    alinear elementos: 'centro',
+    margenHorizontal: 5,
   },
   textoCantidad: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    tamaño de fuente: 16,
+    fontWeight: 'audaz',
     color: '#333',
-    marginHorizontal: 10,
+    margenHorizontal: 10,
   },
   botonEliminar: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: '#ffebee',
+    aclamado: 8,
+    radio fronterizo: 20,
+    color de fondo: '#ffebee',
   },
   subtotalContainer: {
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-    marginLeft: 10,
+    justificarContenido: 'centro',
+    alinear elementos: 'extremadamente flexible',
+    Margen Izquierdo: 10,
   },
   subtotal: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    tamaño de fuente: 18,
+    fontWeight: 'audaz',
     color: '#8B4513',
   },
   resumenPedido: {
-    backgroundColor: '#fff',
-    margin: 20,
-    marginBottom: 0,
-    borderRadius: 15,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    color de fondo: '#fff',
+    margen: 20,
+ margenInferior: 12,
+    radio fronterizo: 15,
+    aclamado: 20,
+    color sombra: '#000',
+    desplazamiento de sombra: { ancho: 0, alta: 2 },
+    sombraOpacidad: 0,1,
+    sombraRadio: 3.84,
+    elevación: 5,
   },
-  tituloResumen: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  tipuloResumen: {
+    tamaño de fuente: 20,
+    fontWeight: 'audaz',
     color: '#333',
-    marginBottom: 15,
+    margenInferior: 15,
   },
   filaResumen: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
+    dirección flexible: 'fila',
+    justificarContenido: 'espacio intermedio',
+    margenInferior: 10,
   },
   textoResumen: {
-    fontSize: 16,
+    tamaño de fuente: 16,
     color: '#666',
   },
   separador: {
-    height: 1,
-    backgroundColor: '#e0e0e0',
-    marginVertical: 15,
+    alta: 1,
+    color de fondo: '#e0e0e0',
+    margenVertical: 15,
   },
   filaTotal: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
+    dirección flexible: 'fila',
+    justificarContenido: 'espacio intermedio',
+    margenInferior: 20,
   },
   textoTotal: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    tamaño de fuente: 20,
+    fontWeight: 'audaz',
     color: '#333',
   },
   botonRealizarPedido: {
