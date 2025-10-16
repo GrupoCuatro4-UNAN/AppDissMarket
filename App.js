@@ -18,6 +18,7 @@ import PantallaPerfil from './screens/PantallaPerfil';
 import PantallaEditarPerfil from './screens/PantallaEditarPerfil';
 import PantallaConfiguracion from './screens/PantallaConfiguracion';
 import PantallaSobreEmpresa from './screens/PantallaSobreEmpresa';
+import PantallaAdministracion from './screens/PantallaAdministracion';
 // Contextos
 import { ProveedorAuth } from './contexts/ContextoAuth';
 import { ProveedorCarrito } from './contexts/ContextoCarrito';
@@ -129,6 +130,7 @@ export default function App() {
                   <Stack.Screen name="PrincipalTabs" component={NavegadorPrincipal} />
                   <Stack.Screen name="EditarPerfil" component={PantallaEditarPerfil} />
                   <Stack.Screen name="Configuracion" component={PantallaConfiguracion} />
+                  <Stack.Screen name="Administracion" component={PantallaAdministracion} />
                   
                 </>
               ) : (

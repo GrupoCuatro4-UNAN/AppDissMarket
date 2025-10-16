@@ -141,6 +141,31 @@ export default function PantallaPerfil({ navigation }) {
             <Ionicons name="chevron-forward-outline" size={20} color="#ccc" />
           </TouchableOpacity>
 
+          {/*Muestra opción de panel de administración solo si es usuario admin*/}
+          {datosUsuario?.esAdmin && (
+            <TouchableOpacity
+              style={styles.opcionMenu}
+              onPress={() => navigation.navigate("Administracion")}
+            >
+              <View style={styles.iconoOpcion}>
+                <Ionicons
+                  name="shield-checkmark-outline"
+                  size={24}
+                  color="#8B4513"
+                />
+              </View>
+              <Text
+                style={[
+                  styles.textoOpcion,
+                  { color: "#8B4513", fontWeight: "600" },
+                ]}
+              >
+                Panel de Administración
+              </Text>
+              <Ionicons name="chevron-forward-outline" size={20} color="#ccc" />
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity style={styles.opcionMenu} onPress={mostrarAyuda}>
             <View style={styles.iconoOpcion}>
               <Ionicons name="help-circle-outline" size={24} color="#666" />
