@@ -1,15 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  Image,
-  Alert,
-  ActivityIndicator
-} from 'react-native';
+import {View,Text,FlatList,TouchableOpacity,StyleSheet,SafeAreaView,Image,Alert,ActivityIndicator} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useCarrito } from '../contexts/ContextoCarrito';
 import { useAuth } from '../contexts/ContextoAuth';
@@ -157,6 +147,18 @@ const confirmarPedidoConDireccion = (direccionEnvio) => {
     }
   };
 
+  // Función para confirmar eliminación de producto
+  const confirmarEliminar = (item) => {
+    Alert.alert(
+      'Eliminar producto',
+      `¿Seguro que deseas eliminar "${item.nombre}" del carrito?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Eliminar', style: 'destructive', onPress: () => removerDelCarrito(item.id) },
+      ]
+    );
+  };
+
   // Componente para renderizar cada producto del carrito
   const ItemCarrito = ({ item }) => (
     <View style={styles.itemCarrito}>
@@ -199,7 +201,7 @@ const confirmarPedidoConDireccion = (direccionEnvio) => {
           {/* Botón eliminar */}
           <TouchableOpacity 
             style={styles.botonEliminar}
-            onPress={() => removerDelCarrito(item.id)}
+            onPress={() => confirmarEliminar(item)}
           >
             <Ionicons name="trash-outline" size={20} color="#ff4757" />
           </TouchableOpacity>
@@ -264,8 +266,8 @@ const confirmarPedidoConDireccion = (direccionEnvio) => {
             </View>
 
             <View style={styles.filaResumen}>
-              <Text style={styles.textoResumen}>Envío</Text>
-              <Text style={styles.textoResumen}>Dirección</Text>
+              <Text style={styles.textoResumen}>Envíoo</Text>
+              <Text style={styles.textoResumen}>Direcciónn</Text>
             </View>
 
             <View style={styles.separador} />
@@ -316,7 +318,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center', 
-    marginBottom: 5,
+    marginBottom: 6,
   },
   logoCirculo: {
     width: 40,
@@ -342,7 +344,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     fontStyle: 'italic',
-    marginLeft: 50,
+    marginLeft: 15,
      textAlign: 'center',
   },
   tituloContainer: {
@@ -479,8 +481,8 @@ const styles = StyleSheet.create({
   },
   resumenPedido: {
     backgroundColor: '#fff',
-    margin: 20,
-    marginBottom: 0,
+    margin: 18,
+    marginBottom: 15,
     borderRadius: 15,
     padding: 20,
     shadowColor: '#000',
