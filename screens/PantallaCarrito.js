@@ -1,14 +1,24 @@
-importar Reaccionar, { Estado de uso } desde 'reaccionar';
-importar {Ver,Texto,Lista plana,Opacidad táctil,Hoja de estilo,Vista de área segura,Imagen,Alerta,Indicador de actividad} desde 'react-native';
-importar { Ionicons } desde '@expo/iconos vectoriales';
-importar { useCarrito } desde '../contextos/ContextoCarrito';
-importar { useAuth } desde '../contextos/ContextoAuth';
-importar LogotipoDissmar desde '../componentes/LogoDissmar';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  Image,
+  Alert,
+  ActivityIndicator
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useCarrito } from '../contexts/ContextoCarrito';
+import { useAuth } from '../contexts/ContextoAuth';
+import LogoDissmar from '../components/LogoDissmar';
 
-exportar predeterminado función PantallaCarrito() {
+export default function PantallaCarrito() {
   const { 
-    artículosCarrito, 
-    removedorDelCarrito, 
+    itemsCarrito, 
+    removerDelCarrito, 
     actualizarCantidad, 
     calcularTotal, 
     realizarPedido,
@@ -16,56 +26,56 @@ exportar predeterminado función PantallaCarrito() {
   } = useCarrito();
   
   const { datosUsuario } = useAuth();
-  const [realizandoPedido, setRealizandoPedido] = Estado de uso(falso);
+  const [realizandoPedido, setRealizandoPedido] = useState(false);
 
   // Función para manejar el pedido
  const manejarRealizarPedido = async () => {
-  consola.registro('¡BOTÓN PRESIONADO!');
-  consola.registro('Datos del usuario:', datosUsuario);
-  consola.registro('Artículos en carro:', artículosCarrito);
+  console.log('¡BOTÓN PRESIONADO!');
+  console.log('Datos del usuario:', datosUsuario);
+  console.log('Items en carrito:', itemsCarrito);
   
-  si (artículosCarrito.longitud === 0) {
-    Alerta.alerta('Carrito vacío', 'Agrega productos al carro para realizar un pedido');
-    retorno;
+  if (itemsCarrito.length === 0) {
+    Alert.alert('Carrito vacío', 'Agrega productos al carrito para realizar un pedido');
+    return;
   }
 
   // Mostrar opciones de dirección
-  Alerta.alerta(
+  Alert.alert(
     'Dirección de entrega',
     '¿Dónde deseas recibir tu pedido?',
     [
       {
-        texto: 'Cancelar',
-        estilo: 'cancelar',
+        text: 'Cancelar',
+        style: 'cancel',
       },
       {
-        texto: 'Mi dirección registrada',
-        en prensa: () => {
-          const direcciónRegistrada = datosUsuario?.direccion || 'Dirección no específica';
-          confirmarPedidoConDirección(direcciónRegistrada);
+        text: 'Mi dirección registrada',
+        onPress: () => {
+          const direccionRegistrada = datosUsuario?.direccion || 'Dirección no especificada';
+          confirmarPedidoConDireccion(direccionRegistrada);
         }
       },
       {
-        texto: 'Otra dirección',
-        en prensa: () => solicitarDirecciónPersonalizada()
+        text: 'Otra dirección',
+        onPress: () => solicitarDireccionPersonalizada()
       }
     ]
   );
 };
 
 // Nueva función para solicitar dirección personalizada
-const solicititarDirecciónPersonalizada = () => {
-  Alerta.prompt(
+const solicitarDireccionPersonalizada = () => {
+  Alert.prompt(
     'Nueva dirección de entrega',
     'Ingresa la dirección donde deseas recibir tu pedido:',
     [
       {
-        texto: 'Cancelar',
-        estilo: 'cancelar'
+        text: 'Cancelar',
+        style: 'cancel'
       },
       {
-        texto: 'Confirmar pedido',
-        en prensa: (direccion) => {
+        text: 'Confirmar pedido',
+        onPress: (direccion) => {
           if (direccion && direccion.trim()) {
             confirmarPedidoConDireccion(direccion.trim());
           } else {
@@ -80,459 +90,447 @@ const solicititarDirecciónPersonalizada = () => {
 };
 
 // Función para confirmar pedido con dirección específica
-const confirmarPedidoConDirección = (direcciónEnvio) => {
-  Alerta.alerta(
+const confirmarPedidoConDireccion = (direccionEnvio) => {
+  Alert.alert(
     'Confirmar pedido',
-    `¿Deseas realizar el pedido por C$ ${calcularTotal().toFixed(2)}?\n\nDirección de entorno: ${direcciónEnvio}`,
+    `¿Deseas realizar el pedido por C$ ${calcularTotal().toFixed(2)}?\n\nDirección de envío: ${direccionEnvio}`,
     [
       {
-        texto: 'Cancelar',
-        estilo: 'cancelar',
+        text: 'Cancelar',
+        style: 'cancel',
       },
       {
-        texto: 'Confirmante',
-        en prensa: async () => {
-          consola.registro('Usuario confirmó el pedido - iniciando proceso...');
-          setRealizandoPedido(verdadero);
+        text: 'Confirmar',
+        onPress: async () => {
+          console.log('Usuario confirmó el pedido - iniciando proceso...');
+          setRealizandoPedido(true);
           
-          intentar {
-            const resultado = await realizarPedido(direcciónEnvio);
-            consola.registro('Resultado del pedido:', resultado);
+          try {
+            const resultado = await realizarPedido(direccionEnvio);
+            console.log('Resultado del pedido:', resultado);
             
-            si (resultado.éxito) {
-              consola.registro('¡Pedido realizado exitosamente!');
-              Alerta.alerta(
+            if (resultado.success) {
+              console.log('¡Pedido realizado exitosamente!');
+              Alert.alert(
                 '¡Pedido realizado!',
-                `Tu pedido ha sido procesado correctamente.\nTotal: C$ ${calcularTotal().toFixed(2)}\nDirección: ${direcciónEnvio}`,
-                [{ texto: 'Está bien' }]
+                `Tu pedido ha sido procesado correctamente.\nTotal: C$ ${calcularTotal().toFixed(2)}\nDirección: ${direccionEnvio}`,
+                [{ text: 'OK' }]
               );
             }
-          } atrapar (error) {
-            consola.error('Error al procesar pedido:', error);
-            Alerta.alerta('Error', 'Hubo un problema al procesar tu pedido');
+          } catch (error) {
+            console.error('Error al procesar pedido:', error);
+            Alert.alert('Error', 'Hubo un problema al procesar tu pedido');
           }
           
-          setRealizandoPedido(falso);
+          setRealizandoPedido(false);
         },
       },
     ]
   );
 };
 
-  // Función para escuchar cantidad
-  const aumentarCantidad = async (articulo) => {
-    await actualizarCantidad(articulo.id, articulo.cantidad + 1);
+  // Función para aumentar cantidad
+  const aumentarCantidad = async (item) => {
+    await actualizarCantidad(item.id, item.cantidad + 1);
   };
 
-  // Función para desalentar la cantidad
-  const disminuirCantidad = async (articulo) => {
-    si (articulo.cantidad > 1) {
-      await actualizarCantidad(articulo.id, articulo.cantidad - 1);
+  // Función para disminuir cantidad
+  const disminuirCantidad = async (item) => {
+    if (item.cantidad > 1) {
+      await actualizarCantidad(item.id, item.cantidad - 1);
     } else {
-      Alerta.alerta(
-        'Preliminar del producto',
-        `¿Deseas eliminar "${articulo.nombre}" del carro?`,
+      Alert.alert(
+        'Eliminar producto',
+        `¿Deseas eliminar "${item.nombre}" del carrito?`,
         [
           {
-            texto: 'Cancelar',
-            estilo: 'cancelar',
+            text: 'Cancelar',
+            style: 'cancel',
           },
           {
-            texto: 'Eliminar',
-            estilo: 'destructivo',
-            en prensa: () => removedorDelCarrito(articulo.id),
+            text: 'Eliminar',
+            style: 'destructive',
+            onPress: () => removerDelCarrito(item.id),
           },
         ]
       );
     }
   };
 
-  // Función para confirmar eliminación de producto
-  const confirmarEliminar = (articulo) => {
-    Alerta.alerta(
-      'Preliminar del producto',
-      `¿Seguro que deseas eliminar "${articulo.nombre}" del carro?`,
-      [
-        { texto: 'Cancelar', estilo: 'cancelar' },
-        { texto: 'Eliminar', estilo: 'destructivo', en prensa: () => removedorDelCarrito(articulo.id) },
-      ]
-    );
-  };
-
-  // Componente para renderizar cada producto del carro
-  const ArtículoCarrito = ({ articulo }) => (
-    <Ver estilo={estilos. .articuloCarrito}>
+  // Componente para renderizar cada producto del carrito
+  const ItemCarrito = ({ item }) => (
+    <View style={styles.itemCarrito}>
       {/* Imagen del producto */}
-      <Ver estilo={estilos. . . .ContenedorImagen}>
-        {articulo.URL de imagen ? (
-          <Imagen fuente={{ uri: articulo.URL de imagen }} estilo={estilos.imagenProducto} />
+      <View style={styles.contenedorImagen}>
+        {item.imagenUrl ? (
+          <Image source={{ uri: item.imagenUrl }} style={styles.imagenProducto} />
         ) : (
-          <Ver estilo={estilos.imagenPlaceholder}>
-            <Ionicons nombre="esquema de imagen" tamaño={30} color="#ccc" />
-          </Ver>
+          <View style={styles.imagenPlaceholder}>
+            <Ionicons name="image-outline" size={30} color="#ccc" />
+          </View>
         )}
-      </Ver>
+      </View>
 
       {/* Información del producto */}
-      <Ver estilo={estilos. . .infoProducto}>
-        <Texto estilo={estilos. . .nombreProducto}>{articulo. . .nombre}</Texto>
-        <Texto estilo={estilos. . . .precioProducto}>C$ {articulo.precio.toFixed(2)}</Texto>
+      <View style={styles.infoProducto}>
+        <Text style={styles.nombreProducto}>{item.nombre}</Text>
+        <Text style={styles.precioProducto}>C$ {item.precio.toFixed(2)}</Text>
         
         {/* Controles de cantidad */}
-        <Ver estilo={estilos. .contenedor de controles}>
-          <Ver estilo={estilos. . .controlesCantidad}>
-            <Opacidad táctil 
-              estilo={estilos. .botonCantidad}
-              en prensa={() => disminuirCantidad(articulo)}
+        <View style={styles.controlesContainer}>
+          <View style={styles.controlesCantidad}>
+            <TouchableOpacity 
+              style={styles.botonCantidad}
+              onPress={() => disminuirCantidad(item)}
             >
-              <Ionicons nombre="eliminar" tamaño={20} color="#8B4513" />
-            </Opacidad táctil>
+              <Ionicons name="remove" size={20} color="#8B4513" />
+            </TouchableOpacity>
             
-            <Texto estilo={estilos. . . .textoCantidad}>{articulo. . .cantidad}</Texto>
+            <Text style={styles.textoCantidad}>{item.cantidad}</Text>
             
-            <Opacidad táctil 
-              estilo={estilos. .botonCantidad}
-              en prensa={() => aumentarCantidad(articulo)}
+            <TouchableOpacity 
+              style={styles.botonCantidad}
+              onPress={() => aumentarCantidad(item)}
             >
-              <Ionicons nombre="añadir" tamaño={20} color="#8B4513" />
-            </Opacidad táctil>
-          </Ver>
+              <Ionicons name="add" size={20} color="#8B4513" />
+            </TouchableOpacity>
+          </View>
 
           {/* Botón eliminar */}
-          <Opacidad táctil 
-            estilo={estilos. .botonEliminar}
-            en prensa={() => confirmarEliminar(articulo)}
+          <TouchableOpacity 
+            style={styles.botonEliminar}
+            onPress={() => removerDelCarrito(item.id)}
           >
-            <Ionicons nombre="esquema basura" tamaño={20} color="#ff4757" />
-          </Opacidad táctil>
-        </Ver>
-      </Ver>
+            <Ionicons name="trash-outline" size={20} color="#ff4757" />
+          </TouchableOpacity>
+        </View>
+      </View>
 
       {/* Subtotal */}
-      <Ver estilo={estilos. . .subtotalContainer}>
-        <Texto estilo={estilos. . .subtotal}>C$ {(articulo.precio * articulo.cantidad).toFixed(2)}</Texto>
-      </Ver>
-    </Ver>
+      <View style={styles.subtotalContainer}>
+        <Text style={styles.subtotal}>C$ {(item.precio * item.cantidad).toFixed(2)}</Text>
+      </View>
+    </View>
   );
 
-  retorno (
-    <Vista de Área segura estilo={estilos. . .contenedor}>
-      {/* Encabezado */}
-      <Ver estilo={estilos. . . .encabezado}>
-        <Ver estilo={estilos. . .logotipoContenedor}>
-        <LogotipoDissmar tamaño="pequeño" mostrar texto={falso} estilo={{ Margen Derecho: 10 }} />
-          <Texto estilo={estilos. . . .logoNombre}>DISSMAR</Texto>
-        </Ver>
-        <Texto estilo={estilos. . . .eslogan}>Tu Distribuidora de Confianza</Texto>
-      </Ver>
+  return (
+    <SafeAreaView style={styles.contenedor}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.logoContainer}>
+        <LogoDissmar size="small" showText={false} style={{ marginRight: 10 }} />
+          <Text style={styles.logoNombre}>DISSMAR</Text>
+        </View>
+        <Text style={styles.eslogan}>Tu Distribuidora de Confianza</Text>
+      </View>
 
-      {/* Típulo de la sección */}
-      <Ver estilo={estilos. . .tituloContenedor}>
-        <Texto estilo={estilos. . .titulo}>Mi Carrito</Texto>
-        <Texto estilo={estilos. . . .subtípulo}>
-          {artículosCarrito.longitud === 1 ? '1 Producto' : `${artículosCarrito.longitud} Productos`}
-        </Texto>
-      </Ver>
+      {/* Título de la sección */}
+      <View style={styles.tituloContainer}>
+        <Text style={styles.titulo}>Mi Carrito</Text>
+        <Text style={styles.subtitulo}>
+          {itemsCarrito.length === 1 ? '1 Producto' : `${itemsCarrito.length} Productos`}
+        </Text>
+      </View>
 
       {/* Contenido principal */}
-      {artículosCarrito.longitud === 0 ? (
-        <Ver estilo={estilos. .carroVacio}>
-          <Ionicons nombre="esquema del carro" tamaño={80} color="#ccc" />
-          <Texto estilo={estilos. .textoCarritoVacio}>Tu carro está vacío</Texto>
-          <Texto estilo={estilos. . . .subtextoCarritoVacio}>
+      {itemsCarrito.length === 0 ? (
+        <View style={styles.carritoVacio}>
+          <Ionicons name="cart-outline" size={80} color="#ccc" />
+          <Text style={styles.textoCarritoVacio}>Tu carrito está vacío</Text>
+          <Text style={styles.subtextoCarritoVacio}>
             Agrega productos desde el catálogo
-          </Texto>
-        </Ver>
+          </Text>
+        </View>
       ) : (
-        <Ver estilo={estilos.contenidoCarrito}>
+        <View style={styles.contenidoCarrito}>
           {/* Lista de productos */}
-          <Lista plana
-            datos={artículosCarrito}
-            Extractor de claves={(articulo) => articulo.id}
-            elemento de renderizado={({ articulo }) => <ArtículoCarrito articulo={articulo} />}
-            contenidoEstilo de contenedor={estilos. .listaCarrito}
-            música el indicador de desplazamiento vertical={falso}
- />
+          <FlatList
+            data={itemsCarrito}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <ItemCarrito item={item} />}
+            contentContainerStyle={styles.listaCarrito}
+            showsVerticalScrollIndicator={false}
+          />
 
           {/* Resumen del pedido */}
-          <Ver estilo={estilos. . . .resumenPedido}>
-            <Texto estilo={estilos. . .tipuloResumen}>Resumen del pedido</Texto>
+          <View style={styles.resumenPedido}>
+            <Text style={styles.tituloResumen}>Resumen del pedido</Text>
             
-            <Ver estilo={estilos. . . .filaResumen}>
-              <Texto estilo={estilos. . .textoResumen}>
-                Subtotal ({artículosCarrito. .longitud} productos)
-              </Texto>
-              <Texto estilo={estilos. . . .textoResumen}>C$ {calcularTotal().toFixed(2)}</Texto>
-            </Ver>
+            <View style={styles.filaResumen}>
+              <Text style={styles.textoResumen}>
+                Subtotal ({itemsCarrito.length} productos)
+              </Text>
+              <Text style={styles.textoResumen}>C$ {calcularTotal().toFixed(2)}</Text>
+            </View>
 
-            <Ver estilo={estilos. . . .filaResumen}>
-              <Texto estilo={estilos. . .textoResumen}>Envioo</Texto>
-              <Texto estilo={estilos. . . .textoResumen}>Dirección</Texto>
-            </Ver>
+            <View style={styles.filaResumen}>
+              <Text style={styles.textoResumen}>Envío</Text>
+              <Text style={styles.textoResumen}>Dirección</Text>
+            </View>
 
-            <Ver estilo={estilos. .separador} />
+            <View style={styles.separador} />
 
-            <Ver estilo={estilos. . . .filaTotal}>
-              <Texto estilo={estilos. . .textoTotal}>Total</Texto>
-              <Texto estilo={estilos. . . .textoTotal}>C$ {calcularTotal().toFixed(2)}</Texto>
-            </Ver>
+            <View style={styles.filaTotal}>
+              <Text style={styles.textoTotal}>Total</Text>
+              <Text style={styles.textoTotal}>C$ {calcularTotal().toFixed(2)}</Text>
+            </View>
 
             {/* Botón realizar pedido */}
-            <Opacidad táctil 
-              estilo={[
-                estilos.botonRealizarPedido, 
-                (realizandoPedido || cargandoCarrito) && estilos.botonDeshabilitado
+            <TouchableOpacity 
+              style={[
+                styles.botonRealizarPedido, 
+                (realizandoPedido || cargandoCarrito) && styles.botonDeshabilitado
               ]}
-              en prensa={manejarRealizarPedido}
-              incapacitado={realizandoPedido || cargandoCarrito}
+              onPress={manejarRealizarPedido}
+              disabled={realizandoPedido || cargandoCarrito}
             >
               {realizandoPedido ? (
-                <Indicador de actividad color="#fff" />
+                <ActivityIndicator color="#fff" />
               ) : (
-                <Texto estilo={estilos.textoBotonRealizar}>Realizar Pedido</Texto>
+                <Text style={styles.textoBotonRealizar}>Realizar Pedido</Text>
               )}
-            </Opacidad táctil>
-          </Ver>
-        </Ver>
+            </TouchableOpacity>
+          </View>
+        </View>
       )}
     </SafeAreaView>
- );
+  );
 }
 
-const estilos = Hoja de estilo.crear({
+const styles = StyleSheet.create({
   contenedor: {
     flex: 1,
-    color de fondo: '#f5f5f5',
+    backgroundColor: '#f5f5f5',
   },
-  encabezado: {
-    color de fondo: '#fff',
-    RellenoHorizontal: 20,
-    RellenoVertical: 15,
-    color sombra: '#000',
-    desplazamiento de sombra: { ancho: 0, alta: 2 },
-    sombraOpacidad: 0,1,
-    sombraRadio: 3.84,
-    elevación: 5,
+  header: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  logotipoContenedor: {
-    dirección flexible: 'fila',
-    alinear elementos: 'centro',
-    justificarContenido: 'centro', 
-    margenInferior: 6,
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center', 
+    marginBottom: 5,
   },
   logoCirculo: {
-    ancho: 40,
-    alta: 40,
-    radio fronterizo: 20,
-    color de fondo: '#000',
-    justificarContenido: 'centro',
-    alinear elementos: 'centro',
-    Margen Derecho: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
   },
   logoTexto: {
-    tamaño de fuente: 20,
-    fontWeight: 'audaz',
+    fontSize: 20,
+    fontWeight: 'bold',
     color: '#fff',
   },
   logoNombre: {
-    tamaño de fuente: 20,
-    fontWeight: 'audaz',
+    fontSize: 20,
+    fontWeight: 'bold',
     color: '#000',
-    espaciado entre letras: 1,
+    letterSpacing: 1,
   },
   eslogan: {
-    tamaño de fuente: 14,
+    fontSize: 14,
     color: '#666',
-    estilo de fuente: 'cursiva',
-    Margen Izquierdo: 15,
-     margenInferior: 10,
+    fontStyle: 'italic',
+    marginLeft: 50,
+     textAlign: 'center',
   },
-  ControlesContenedor: {
-    dirección flexible: 'fila',
-    justificarContenido: 'espacio intermedio',
-    alinear elementos: 'centro',
-    margenInferior: 10,
-  controlesCantidad,
-  dirección flexible: 'fila'
-    alinear elementos: 'centro',
-    color de fondo: '#f0f0f0',
-    radio fronterizo: 20,
-    RellenoHorizontal: 5,
+  tituloContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    backgroundColor: '#fff',
+    marginBottom: 10,
   },
-  botonCantidad: {
-    ancho: 30,
-    alta: 30,
-  radio fronterizo: 
-  color de fondo: '#fff'
-    justificarContenido: 'centro',
-    alinear elementos: 'centro',
-    alinear elementos: 'centro',
-    RellenoHorizontal: 40,
+  titulo: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
+  },
+  subtitulo: {
+    fontSize: 16,
+    color: '#666',
+  },
+  carritoVacio: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
   },
   textoCarritoVacio: {
-    tamaño de fuente: 24,
+    fontSize: 24,
     fontWeight: '600',
     color: '#666',
-    margen superior: 20,
-    margenInferior: 10,
-    alineación de texto: 'centro',
+    marginTop: 20,
+    marginBottom: 10,
+    textAlign: 'center',
   },
   subtextoCarritoVacio: {
-    tamaño de fuente: 16,
+    fontSize: 16,
     color: '#999',
-    alineación de texto: 'centro',
-    alta de línea: 22,
+    textAlign: 'center',
+    lineHeight: 22,
   },
   contenidoCarrito: {
     flex: 1,
   },
   listaCarrito: {
-    RellenoHorizontal: 20,
-    relleno inferior: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
-  articuloCarrito: {
-    color de fondo: '#fff',
-    radio fronterizo: 15,
-    margenInferior: 15,
-    dirección flexible: 'fila',
-    aclamado: 15,
-    color sombra: '#000',
-    desplazamiento de sombra: { ancho: 0, alta: 2 },
-    sombraOpacidad: 0,1,
-    sombraRadio: 3.84,
-    elevación: 5,
+  itemCarrito: {
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    marginBottom: 15,
+    flexDirection: 'row',
+    padding: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  ContenedorImagen: {
-    ancho: 80,
-    alta: 80,
-    Margen Derecho: 15,
+  contenedorImagen: {
+    width: 80,
+    height: 80,
+    marginRight: 15,
   },
   imagenProducto: {
-    ancho: '100%',
-    alta: '100%',
-    radio fronterizo: 10,
-    cambiar tamaño de modo: 'cubierta',
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+    resizeMode: 'cover',
   },
   imagenPlaceholder: {
-    ancho: '100%',
-    alta: '100%',
-    color de fondo: '#f0f0f0',
-    radio fronterizo: 10,
-    justificarContenido: 'centro',
-    alinear elementos: 'centro',
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   infoProducto: {
     flex: 1,
-    justificarContenido: 'espacio intermedio',
+    justifyContent: 'space-between',
   },
   nombreProducto: {
-    tamaño de fuente: 16,
+    fontSize: 16,
     fontWeight: '600',
     color: '#333',
-    margenInferior: 5,
+    marginBottom: 5,
   },
   precioProducto: {
-    tamaño de fuente: 18,
-    fontWeight: 'audaz',
+    fontSize: 18,
+    fontWeight: 'bold',
     color: '#8B4513',
-    margenInferior: 10,
+    marginBottom: 10,
   },
-  ControlesContenedor: {
-    dirección flexible: 'fila',
-    justificarContenido: 'espacio intermedio',
-    alinear elementos: 'centro',
+  controlesContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   controlesCantidad: {
-    dirección flexible: 'fila',
-    alinear elementos: 'centro',
-    color de fondo: '#f0f0f0',
-    radio fronterizo: 20,
-    RellenoHorizontal: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 20,
+    paddingHorizontal: 5,
   },
   botonCantidad: {
-    ancho: 30,
-    alta: 30,
- radio fronterizo: 15,
-    color de fondo: '#fff',
-    justificarContenido: 'centro',
-    alinear elementos: 'centro',
-    margenHorizontal: 5,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 5,
   },
   textoCantidad: {
-    tamaño de fuente: 16,
-    fontWeight: 'audaz',
+    fontSize: 16,
+    fontWeight: 'bold',
     color: '#333',
-    margenHorizontal: 10,
+    marginHorizontal: 10,
   },
   botonEliminar: {
-    aclamado: 8,
-    radio fronterizo: 20,
-    color de fondo: '#ffebee',
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: '#ffebee',
   },
   subtotalContainer: {
-    justificarContenido: 'centro',
-    alinear elementos: 'extremadamente flexible',
-    Margen Izquierdo: 10,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    marginLeft: 10,
   },
   subtotal: {
-    tamaño de fuente: 18,
-    fontWeight: 'audaz',
+    fontSize: 18,
+    fontWeight: 'bold',
     color: '#8B4513',
   },
   resumenPedido: {
-    color de fondo: '#fff',
-    margen: 18,
-    margenInferior: 15,
-    radio fronterizo: 15,
-    aclamado: 20,
-    color sombra: '#000',
-    desplazamiento de sombra: { ancho: 0, alta: 2 },
-    sombraOpacidad: 0,1,
-    sombraRadio: 3.84,
-    elevación: 5,
+    backgroundColor: '#fff',
+    margin: 20,
+    marginBottom: 0,
+    borderRadius: 15,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  tipuloResumen: {
-    tamaño de fuente: 20,
-    fontWeight: 'audaz',
+  tituloResumen: {
+    fontSize: 20,
+    fontWeight: 'bold',
     color: '#333',
-    margenInferior: 15,
+    marginBottom: 15,
   },
   filaResumen: {
-    dirección flexible: 'fila',
-    justificarContenido: 'espacio intermedio',
-    margenInferior: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
   },
   textoResumen: {
-    tamaño de fuente: 16,
+    fontSize: 16,
     color: '#666',
   },
   separador: {
-    alta: 1,
-    color de fondo: '#e0e0e0',
-    margenVertical: 15,
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    marginVertical: 15,
   },
   filaTotal: {
-    dirección flexible: 'fila',
-    justificarContenido: 'espacio intermedio',
-    margenInferior: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
   },
   textoTotal: {
-    tamaño de fuente: 20,
-    fontWeight: 'audaz',
+    fontSize: 20,
+    fontWeight: 'bold',
     color: '#333',
   },
   botonRealizarPedido: {
-    color de fondo: '#8B4513',
-    radio fronterizo: 10,
-    RellenoVertical: 15,
-    alinear elementos: 'centro',
+    backgroundColor: '#8B4513',
+    borderRadius: 10,
+    paddingVertical: 15,
+    alignItems: 'center',
   },
   botonDeshabilitado: {
-    color de fondo: '#ccc',
+    backgroundColor: '#ccc',
   },
   textoBotonRealizar: {
     color: '#fff',
-    tamaño de fuente: 18,
-    fontWeight: 'audaz',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
