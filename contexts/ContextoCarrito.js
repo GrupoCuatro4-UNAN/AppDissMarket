@@ -14,13 +14,16 @@ export const ProveedorCarrito = ({ children }) => {
   const [itemsCarrito, setItemsCarrito] = useState([]);
   const [cargandoCarrito, setCargandoCarrito] = useState(false);
   const { usuarioActual } = useAuth();
+  
+  //   bloqueos para el modo 'invitado' (no permitir
+  //   agregar, no guardar/cargar en Firestore, bloquear pedidos).
 
   // Función para agregar productos al carrito
   const agregarAlCarrito = async (producto, cantidad = 1) => {
     console.log('Agregando al carrito:', { producto, cantidad });
-    
-    if (!usuarioActual) {
-      Alert.alert('Inicia sesión', 'Debes iniciar sesión para agregar productos al carrito');
+    // No permitir agregar al carrito si no hay usuario real (incluye invitado)
+    if (!usuarioActual || usuarioActual.uid === 'invitado') {
+      Alert.alert('Inicia sesión', 'Debes iniciar sesión o crear una cuenta para agregar productos al carrito');
       return;
     }
 
@@ -122,10 +125,12 @@ export const ProveedorCarrito = ({ children }) => {
   };
 
   // Función para realizar pedido
+  // crea documento 'pedidos' en Firestore con items y datos.
+  //  bloquea la acción si el usuario es 'invitado'.
   const realizarPedido = async (direccionEnvio) => {
     console.log('Iniciando proceso de pedido...', { usuarioActual, itemsCarrito });
     
-    if (!usuarioActual) {
+    if (!usuarioActual || usuarioActual.uid === 'invitado') {
       Alert.alert('Error', 'Debes iniciar sesión para realizar pedidos');
       return { success: false };
     }
@@ -184,8 +189,10 @@ export const ProveedorCarrito = ({ children }) => {
   };
 
   // Función para guardar carrito en la base de datos
+  // no guardar para usuarios invitados (uid === 'invitado'). Esto evita escribir
   const guardarCarritoEnFirestore = async (items) => {
-    if (!usuarioActual) return;
+    // No guardar carrito en Firestore para usuarios invitados
+    if (!usuarioActual || usuarioActual.uid === 'invitado') return;
     
     try {
       const carritoRef = doc(db, 'carritos', usuarioActual.uid);
@@ -199,8 +206,10 @@ export const ProveedorCarrito = ({ children }) => {
   };
 
   // Función para cargar carrito desde la base de datos
+  // no cargar datos para usuarios invitados; el carrito del invitado se mantiene
   const cargarCarritoDesdeFirestore = async () => {
-    if (!usuarioActual) {
+    // No cargar carrito de Firestore para usuarios invitados
+    if (!usuarioActual || usuarioActual.uid === 'invitado') {
       setItemsCarrito([]);
       return;
     }
