@@ -15,6 +15,7 @@ export const ProveedorFavoritos = ({ children }) => {
   const [cargandoFavoritos, setCargandoFavoritos] = useState(false);
   const { usuarioActual } = useAuth();
 
+  //  bloqueo para usuarios invitados en agregar/guardar/cargar.
   // Función para verificar si un producto es favorito
   const esFavorito = (productoId) => {
     return favoritos.some(fav => fav.id === productoId);
@@ -22,8 +23,9 @@ export const ProveedorFavoritos = ({ children }) => {
 
   // Función para agregar producto a favoritos
   const agregarAFavoritos = async (producto) => {
-    if (!usuarioActual) {
-      Alert.alert('Inicia sesión', 'Debes iniciar sesión para agregar favoritos');
+    // No permitir agregar favoritos si no hay usuario real (incluye invitado)
+    if (!usuarioActual || usuarioActual.uid === 'invitado') {
+      Alert.alert('Inicia sesión', 'Debes iniciar sesión o crear una cuenta para agregar favoritos');
       return;
     }
 
@@ -90,8 +92,10 @@ export const ProveedorFavoritos = ({ children }) => {
   };
 
   // Función para guardar favoritos en la base de datos
+  // no guardar favoritos para usuarios invitados (evita escribir con uid 'invitado').
   const guardarFavoritosEnFirestore = async (favoritosArray) => {
-    if (!usuarioActual) return;
+    // No guardar favoritos para usuarios invitados
+    if (!usuarioActual || usuarioActual.uid === 'invitado') return;
     
     try {
       const favoritosRef = doc(db, 'favoritos', usuarioActual.uid);
@@ -105,8 +109,10 @@ export const ProveedorFavoritos = ({ children }) => {
   };
 
   // Función para cargar favoritos desde la base de datos
+  // evitar cargar favoritos desde Firestore para usuarios invitados.
   const cargarFavoritosDesdeFirestore = async () => {
-    if (!usuarioActual) {
+    // No cargar favoritos para usuarios invitados
+    if (!usuarioActual || usuarioActual.uid === 'invitado') {
       setFavoritos([]);
       return;
     }
