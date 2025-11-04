@@ -14,12 +14,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
 import LogoDissmar from "../components/LogoDissmar";
+import { useAuth } from "../contexts/ContextoAuth"; 
 
 export default function PantallaLogin({ navigation }) {
   const [email, setEmail] = useState("");
   const [contraseña, setContraseña] = useState("");
   const [mostrarContraseña, setMostrarContraseña] = useState(false);
   const [cargando, setCargando] = useState(false);
+  // entrarComoInvitado(): función del contexto que activa el modo invitado.
+  // Observación: la navegación hacia PrincipalTabs se hace aquí tras llamar a la función.
+  const { entrarComoInvitado } = useAuth(); // NUEVO
 
   const manejarInicioSesion = async () => {
     if (!email.trim() || !contraseña.trim()) {
@@ -100,21 +104,20 @@ export default function PantallaLogin({ navigation }) {
               style={styles.icono}
             />
             <TextInput
-              style={[styles.input, styles.inputContraseña]}
+              style={styles.input}
               placeholder="Contraseña"
               placeholderTextColor="#999"
               value={contraseña}
               onChangeText={setContraseña}
               secureTextEntry={!mostrarContraseña}
-              autoCapitalize="none"
               autoCorrect={false}
             />
             <TouchableOpacity
-              onPress={() => setMostrarContraseña(!mostrarContraseña)}
               style={styles.iconoOjo}
+              onPress={() => setMostrarContraseña(!mostrarContraseña)}
             >
               <Ionicons
-                name={mostrarContraseña ? "eye-outline" : "eye-off-outline"}
+                name={mostrarContraseña ? "eye-off-outline" : "eye-outline"}
                 size={24}
                 color="#666"
               />
@@ -123,7 +126,10 @@ export default function PantallaLogin({ navigation }) {
 
           {/* Botón de entrar */}
           <TouchableOpacity
-            style={[styles.botonEntrar, cargando && styles.botonDeshabilitado]}
+            style={[
+              styles.botonEntrar,
+              cargando && styles.botonDeshabilitado
+            ]}
             onPress={manejarInicioSesion}
             disabled={cargando}
           >
@@ -132,6 +138,26 @@ export default function PantallaLogin({ navigation }) {
             ) : (
               <Text style={styles.textoBotonEntrar}>Entrar</Text>
             )}
+          </TouchableOpacity>
+
+          {/* NUEVO BOTÓN: Entrar como invitado */}
+          {/* AÑADIDO POR: USUARIO
+              - Llama a entrarComoInvitado() del contexto para activar modo invitado.
+              - navigation.replace('PrincipalTabs') fuerza navegación a las pestañas principales.
+              - Nota: App.js fue modificado para que el Router respete modoInvitado y muestre PrincipalTabs. */}
+          <TouchableOpacity
+            style={styles.botonInvitado}
+            onPress={() => {
+              // Llamar solo a entrarComoInvitado() es suficiente porque el Router
+              // (en App.js) observa `modoInvitado` y re-renderiza la navegación
+              // para mostrar `PrincipalTabs`. Hacer `navigation.replace('PrincipalTabs')`
+              // aquí puede provocar la warning "The action 'REPLACE' ... was not handled"
+              // si la ruta aún no está registrada en el stack actual.
+              entrarComoInvitado();
+            }}
+          >
+            <Ionicons name="eye-outline" size={20} color="#8B4513" />
+            <Text style={styles.textoBotonInvitado}>Entrar como invitado</Text>
           </TouchableOpacity>
 
           {/* Botón de crear cuenta */}
@@ -170,26 +196,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 40,
   },
-  logoCirculo: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: "#000",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  logoTexto: {
-    fontSize: 40,
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  logoNombre: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#000",
-    letterSpacing: 1,
-  },
   eslogan: {
     fontSize: 16,
     color: "#666",
@@ -201,10 +207,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 25,
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,
@@ -233,9 +236,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
   },
-  inputContraseña: {
-    paddingRight: 50,
-  },
   iconoOjo: {
     position: "absolute",
     right: 15,
@@ -255,6 +255,24 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  // NUEVO ESTILO
+  botonInvitado: {
+    flexDirection: "row",
+    backgroundColor: "#f0f0f0",
+    borderRadius: 10,
+    paddingVertical: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  textoBotonInvitado: {
+    color: "#8B4513",
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 8,
   },
   botonCrearCuenta: {
     flexDirection: "row",
