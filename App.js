@@ -3,8 +3,11 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebase';
+//  Ajustes realizados para soportar 'modo invitado'
+//  ORIGINAL: App usaba onAuthStateChanged(local) para decidir si mostrar Login o PrincipalTabs.
+//  MODIFICACIÓN: extracción de esa lógica al contexto `ContextoAuth` y creación
+//  `modoInvitado === true`. Esto permite que la acción "Entrar como invitado" active
+//  la navegación a las pestañas principales sin requerir sesión en Firebase.
 
 // Importación de las vistaas
 import PantallaSplash from './screens/PantallaSplash';
@@ -20,7 +23,7 @@ import PantallaConfiguracion from './screens/PantallaConfiguracion';
 import PantallaSobreEmpresa from './screens/PantallaSobreEmpresa';
 import PantallaAdministracion from './screens/PantallaAdministracion';
 // Contextos
-import { ProveedorAuth } from './contexts/ContextoAuth';
+import { ProveedorAuth, useAuth } from './contexts/ContextoAuth';
 import { ProveedorCarrito } from './contexts/ContextoCarrito';
 import { ProveedorFavoritos } from './contexts/ContextoFavoritos';
 
@@ -101,48 +104,41 @@ function NavegadorPrincipal() {
   );
 }
 
+function Router() {
+  const { usuarioActual, modoInvitado, cargando } = useAuth();
+
+  if (cargando) return <PantallaSplash />;
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {(usuarioActual || modoInvitado) ? (
+          // Usuario autenticado o en modo invitado - mostrar pantallas 
+          <>
+            <Stack.Screen name="PrincipalTabs" component={NavegadorPrincipal} />
+            <Stack.Screen name="EditarPerfil" component={PantallaEditarPerfil} />
+            <Stack.Screen name="Configuracion" component={PantallaConfiguracion} />
+            <Stack.Screen name="Administracion" component={PantallaAdministracion} />
+          </>
+        ) : (
+          // Usuario no autenticado - mostrar pantalla de login
+          <>
+            <Stack.Screen name="Login" component={PantallaLogin} />
+            <Stack.Screen name="Registro" component={PantallaRegistro} />
+            <Stack.Screen name="SobreEmpresa" component={PantallaSobreEmpresa} />
+          </>
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
 export default function App() {
-  const [usuario, setUsuario] = useState(null);
-  const [cargando, setCargando] = useState(true);
-
-  useEffect(() => {
-    const desuscribir = onAuthStateChanged(auth, (usuario) => {
-      setUsuario(usuario);
-      setCargando(false);
-    });
-
-    return desuscribir;
-  }, []);
-
-  if (cargando) {
-    return <PantallaSplash />;
-  }
-
   return (
     <ProveedorAuth>
       <ProveedorCarrito>
         <ProveedorFavoritos>
-          <NavigationContainer>
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
-              {usuario ? (
-                // Usuario autenticado - mostrar pantallas 
-                <>
-                  <Stack.Screen name="PrincipalTabs" component={NavegadorPrincipal} />
-                  <Stack.Screen name="EditarPerfil" component={PantallaEditarPerfil} />
-                  <Stack.Screen name="Configuracion" component={PantallaConfiguracion} />
-                  <Stack.Screen name="Administracion" component={PantallaAdministracion} />
-                  
-                </>
-              ) : (
-                // Usuario no autenticado - mostrar pantalla de login
-                <>
-                  <Stack.Screen name="Login" component={PantallaLogin} />
-                  <Stack.Screen name="Registro" component={PantallaRegistro} />
-                  <Stack.Screen name="SobreEmpresa" component={PantallaSobreEmpresa} />
-                </>
-              )}
-            </Stack.Navigator>
-          </NavigationContainer>
+          <Router />
         </ProveedorFavoritos>
       </ProveedorCarrito>
     </ProveedorAuth>
