@@ -14,8 +14,8 @@ export const ProveedorAuth = ({ children }) => {
   const [usuarioActual, setUsuarioActual] = useState(null);
   const [datosUsuario, setDatosUsuario] = useState(null);
   const [cargando, setCargando] = useState(true);
+  const [modoInvitado, setModoInvitado] = useState(false); // NUEVO
 
-  // Función para obtener datos del usuario desde Firestore
   const obtenerDatosUsuario = async (uid) => {
     try {
       const docRef = doc(db, 'usuarios', uid);
@@ -26,78 +26,83 @@ export const ProveedorAuth = ({ children }) => {
         setDatosUsuario(datos);
         return datos;
       } else {
-        console.log('No se encontraron datos del usuario en la base de datos');
+        console.log('No se encontraron datos del usuario');
         return null;
       }
     } catch (error) {
-      console.error('Error al obtener datos del usuario:', error);
+      console.error('Error al obtener datos:', error);
       return null;
     }
   };
-
-  // Función para actualizar perfil del usuario
+  // actualizarPerfil: evita que un invitado modifique datos.
   const actualizarPerfil = async (nuevosDatos) => {
-    try {
-      if (!usuarioActual) {
-        Alert.alert('Error', 'No hay usuario autenticado');
-        return { success: false };
-      }
-      
-      const docRef = doc(db, 'usuarios', usuarioActual.uid);
-      await updateDoc(docRef, {
-        ...nuevosDatos,
-        fechaActualizacion: new Date()
-      });
-
-      // Actualizar el estado local
-      setDatosUsuario(prev => ({ ...prev, ...nuevosDatos }));
-      
-      Alert.alert('¡Éxito!', 'Perfil actualizado correctamente');
-      return { success: true };
-    } catch (error) {
-      console.error('Error al actualizar perfil:', error);
-      Alert.alert('Error', 'No se pudo actualizar el perfil');
-      return { success: false, error: error.message };
+    if (modoInvitado) {
+      // Mensaje UX para el invitado
+      Alert.alert('Modo Invitado', 'No puedes editar el perfil como invitado');
+      return { success: false };
     }
   };
 
-  // Función para cerrar sesión
   const cerrarSesion = async () => {
     try {
-      await signOut(auth);
+      if (!modoInvitado) {
+        await signOut(auth);
+      }
+      setUsuarioActual(null);
       setDatosUsuario(null);
+      setModoInvitado(false);
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
-      Alert.alert('Error', 'No se pudo cerrar la sesión');
     }
   };
 
-  // Efecto para manejar cambios en el estado de autenticación
+  // entrarComoInvitado:
+  // - Propósito (usuario): crear un usuario temporal en memoria con uid 'invitado' y datos por defecto.
+  // - Uso: permite navegar por la app sin estar autenticado, con funciones limitadas.
+  // - alerta para informar al usuario de las limitaciones.
+  const entrarComoInvitado = () => {
+    setUsuarioActual({ uid: 'invitado', email: 'invitado@dissmar.com' });
+    setDatosUsuario({
+      nombreCompleto: 'Invitado',
+      telefono: 'No disponible',
+      direccion: 'No disponible',
+      esAdmin: false
+    });
+    setModoInvitado(true);
+    setCargando(false);
+    Alert.alert('Bienvenido', 'Has ingresado como invitado. Algunas funciones pueden estar limitadas.');
+  };
+
+  //   la dependencia [modoInvitado] evita que el observable sobrescriba
+  //   el estado de invitado inmediatamente después de llamar entrarComoInvitado().
   useEffect(() => {
     const desuscribir = onAuthStateChanged(auth, async (usuario) => {
-      setUsuarioActual(usuario);
-      
       if (usuario) {
-        // Usuario autenticado - obtener sus datos
+        setUsuarioActual(usuario);
+        setModoInvitado(false);
         await obtenerDatosUsuario(usuario.uid);
       } else {
-        // Usuario no autenticado - limpiar datos
-        setDatosUsuario(null);
+        // Solo limpiar si no estamos en modo invitado (para no sobrescribir ese estado)
+        if (!modoInvitado) {
+          setUsuarioActual(null);
+          setDatosUsuario(null);
+        }
       }
-      
       setCargando(false);
     });
 
     return desuscribir;
-  }, []);
+  }, [modoInvitado]);
 
   const valor = {
     usuarioActual,
     datosUsuario,
     cargando,
+    modoInvitado,
     obtenerDatosUsuario,
     actualizarPerfil,
-    cerrarSesion
+    cerrarSesion,
+    entrarComoInvitado
   };
 
   return (
