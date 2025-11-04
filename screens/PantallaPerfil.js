@@ -14,7 +14,9 @@ import LogoDissmar from '../components/LogoDissmar';
 
 
 export default function PantallaPerfil({ navigation }) {
-  const { usuarioActual, datosUsuario, cerrarSesion } = useAuth();
+  // está navegando como invitado. Esto permite mostrar "Regresar al Login" en vez
+  // de "Cerrar sesión" y evitar llamadas a Firebase para el invitado.
+  const { usuarioActual, datosUsuario, cerrarSesion, modoInvitado } = useAuth();
 
   // Función para manejar el cierre de sesión
   const manejarCerrarSesion = () => {
@@ -31,6 +33,27 @@ export default function PantallaPerfil({ navigation }) {
           style: 'destructive',
           onPress: cerrarSesion,
         },
+      ]
+    );
+  };
+
+  // Manejar regresar al login cuando se está en modo invitado
+  // confirmar y luego llamar a cerrarSesion() para limpiar el estado
+  // de invitado y volver al flujo de Login 
+  const manejarRegresarLogin = () => {
+    Alert.alert(
+      'Volver al inicio',
+      'Si vuelves al inicio podrás iniciar sesión o crear una cuenta.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Ir al Login',
+          style: 'default',
+          onPress: () => {
+            // limpiar estado de invitado y regresar a la pantalla de login
+            cerrarSesion();
+          }
+        }
       ]
     );
   };
@@ -174,13 +197,25 @@ export default function PantallaPerfil({ navigation }) {
             <Ionicons name="chevron-forward-outline" size={20} color="#ccc" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.opcionMenu} onPress={manejarCerrarSesion}>
-            <View style={styles.iconoOpcion}>
-              <Ionicons name="log-out-outline" size={24} color="#ff4757" />
-            </View>
-            <Text style={[styles.textoOpcion, styles.textoOpcionRoja]}>Cerrar sesión</Text>
-            <Ionicons name="chevron-forward-outline" size={20} color="#ccc" />
-          </TouchableOpacity>
+          {modoInvitado ? (
+            // Interfaz mostrada cuando el usuario está en modo invitado
+            <TouchableOpacity style={styles.opcionMenu} onPress={manejarRegresarLogin}>
+              <View style={styles.iconoOpcion}>
+                <Ionicons name="arrow-back-outline" size={24} color="#8B4513" />
+              </View>
+              <Text style={[styles.textoOpcion, { color: '#8B4513', fontWeight: '600' }]}>Regresar al Login</Text>
+              <Ionicons name="chevron-forward-outline" size={20} color="#ccc" />
+            </TouchableOpacity>
+          ) : (
+            // Interfaz para usuarios autenticados reales: opción de cerrar sesión
+            <TouchableOpacity style={styles.opcionMenu} onPress={manejarCerrarSesion}>
+              <View style={styles.iconoOpcion}>
+                <Ionicons name="log-out-outline" size={24} color="#ff4757" />
+              </View>
+              <Text style={[styles.textoOpcion, styles.textoOpcionRoja]}>Cerrar sesión</Text>
+              <Ionicons name="chevron-forward-outline" size={20} color="#ccc" />
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
