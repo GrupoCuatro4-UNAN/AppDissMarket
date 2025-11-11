@@ -1,8 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect,  useRef } from 'react';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from './ContextoAuth';
 import { Alert } from 'react-native';
+
+
 
 const ContextoFavoritos = createContext();
 
@@ -14,6 +16,15 @@ export const ProveedorFavoritos = ({ children }) => {
   const [favoritos, setFavoritos] = useState([]);
   const [cargandoFavoritos, setCargandoFavoritos] = useState(false);
   const { usuarioActual } = useAuth();
+
+   const montado = useRef(true);
+  
+  useEffect(() => {
+    montado.current = true;
+    return () => {
+      montado.current = false;
+    };
+  }, []);
 
   //  bloqueo para usuarios invitados en agregar/guardar/cargar.
   // Función para verificar si un producto es favorito
@@ -137,9 +148,22 @@ export const ProveedorFavoritos = ({ children }) => {
   };
 
   // Efecto para cargar favoritos cuando el usuario cambie
-  useEffect(() => {
-    cargarFavoritosDesdeFirestore();
+ useEffect(() => {
+    let montado = true;
+    
+    const cargar = async () => {
+      if (montado) {
+        await cargarFavoritosDesdeFirestore();
+      }
+    };
+    
+    cargar();
+    
+    return () => {
+      montado = false;
+    };
   }, [usuarioActual]);
+  // FIN DE CAMBIO
 
   const valor = {
     favoritos,

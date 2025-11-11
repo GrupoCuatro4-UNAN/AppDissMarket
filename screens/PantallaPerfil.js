@@ -31,12 +31,20 @@ export default function PantallaPerfil({ navigation }) {
         {
           text: 'Cerrar sesión',
           style: 'destructive',
-          onPress: cerrarSesion,
+          onPress: async () => {
+            try {
+              await cerrarSesion();
+              // No necesitamos navegar manualmente, el Router lo hará automáticamente
+            } catch (error) {
+              console.error('Error al cerrar sesión:', error);
+              Alert.alert('Error', 'Hubo un problema al cerrar sesión');
+            }
+          },
         },
       ]
     );
   };
-
+  // FIN DE CAMBIO
   // Manejar regresar al login cuando se está en modo invitado
   // confirmar y luego llamar a cerrarSesion() para limpiar el estado
   // de invitado y volver al flujo de Login 
@@ -97,6 +105,15 @@ export default function PantallaPerfil({ navigation }) {
           <Text style={styles.emailUsuario}>
             {usuarioActual?.email || 'email@ejemplo.com'}
           </Text>
+
+                {/* INICIO DE CAMBIO: Mostrar badge de admin si corresponde */}
+          {datosUsuario?.esAdmin && (
+            <View style={styles.badgeAdmin}>
+              <Ionicons name="shield-checkmark" size={16} color="#fff" />
+              <Text style={styles.textoAdmin}>ADMINISTRADOR</Text>
+            </View>
+          )}
+          {/* FIN DE CAMBIO */}
         </View>
 
         {/* Datos Personales */}
@@ -164,30 +181,7 @@ export default function PantallaPerfil({ navigation }) {
             <Ionicons name="chevron-forward-outline" size={20} color="#ccc" />
           </TouchableOpacity>
 
-          {/*Muestra opción de panel de administración solo si es usuario admin*/}
-          {datosUsuario?.esAdmin && (
-            <TouchableOpacity
-              style={styles.opcionMenu}
-              onPress={() => navigation.navigate("Administracion")}
-            >
-              <View style={styles.iconoOpcion}>
-                <Ionicons
-                  name="shield-checkmark-outline"
-                  size={24}
-                  color="#8B4513"
-                />
-              </View>
-              <Text
-                style={[
-                  styles.textoOpcion,
-                  { color: "#8B4513", fontWeight: "600" },
-                ]}
-              >
-                Panel de Administración
-              </Text>
-              <Ionicons name="chevron-forward-outline" size={20} color="#ccc" />
-            </TouchableOpacity>
-          )}
+         
 
           <TouchableOpacity style={styles.opcionMenu} onPress={mostrarAyuda}>
             <View style={styles.iconoOpcion}>
@@ -302,6 +296,22 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
   },
+  badgeAdmin: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#8B4513',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginTop: 10,
+  },
+  textoAdmin: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
+  // FIN DE CAMBIO
   seccion: {
     backgroundColor: '#fff',
     marginHorizontal: 20,

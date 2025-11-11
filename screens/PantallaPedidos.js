@@ -141,6 +141,50 @@ export default function PantallaPedidos() {
     );
   };
 
+   const confirmarRecepcion = async (pedido) => {
+    // Solo permitir confirmar si el estado es "entregado" y no ha sido confirmado
+    if (pedido.estado !== 'entregado') {
+      Alert.alert('No disponible', 'Solo puedes confirmar pedidos que ya fueron entregados');
+      return;
+    }
+
+    if (pedido.clienteConfirmoRecepcion) {
+      Alert.alert('Ya confirmado', 'Ya has confirmado la recepción de este pedido');
+      return;
+    }
+
+    Alert.alert(
+      '¿Recibiste tu pedido?',
+      `Por favor confirma que recibiste el pedido #${pedido.id.substring(0, 8)} correctamente.`,
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Sí, lo recibí',
+          onPress: async () => {
+            try {
+              await updateDoc(doc(db, 'pedidos', pedido.id), {
+                clienteConfirmoRecepcion: true,
+                fechaConfirmacionCliente: new Date()
+              });
+
+              Alert.alert(
+                '¡Gracias!',
+                'Has confirmado la recepción de tu pedido. ¡Gracias por tu compra!'
+              );
+
+              cargarPedidos(); // Recargar para mostrar la confirmación
+            } catch (error) {
+              console.error('Error al confirmar recepción:', error);
+              Alert.alert('Error', 'No se pudo confirmar la recepción del pedido');
+            }
+          },
+        },
+      ]
+    );
+  };
   // Función para obtener el color del estado
   const obtenerColorEstado = (estado) => {
     switch (estado) {
@@ -202,6 +246,16 @@ export default function PantallaPedidos() {
         ))}
       </View>
 
+      {/* NUEVO: Mostrar si el cliente ya confirmó recepción */}
+      {item.clienteConfirmoRecepcion && (
+        <View style={styles.confirmacionRecepcion}>
+          <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
+          <Text style={styles.textoConfirmacion}>
+            Recibido el {formatearFecha(item.fechaConfirmacionCliente?.toDate?.() || item.fechaConfirmacionCliente)}
+          </Text>
+        </View>
+      )}
+
       <View style={styles.piePedido}>
         <Text style={styles.totalPedido}>Total: C$ {item.total.toFixed(2)}</Text>
         
@@ -221,6 +275,17 @@ export default function PantallaPedidos() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* NUEVO: Botón para confirmar recepción (solo si está entregado y no confirmado) */}
+      {item.estado === 'entregado' && !item.clienteConfirmoRecepcion && (
+        <TouchableOpacity 
+          style={styles.botonConfirmarRecepcion}
+          onPress={() => confirmarRecepcion(item)}
+        >
+          <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
+          <Text style={styles.textoBotonConfirmar}>¡Recibí mi pedido!</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -422,6 +487,36 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginBottom: 5,
+  },
+    confirmacionRecepcion: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#e8f5e9',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  textoConfirmacion: {
+    fontSize: 13,
+    color: '#4CAF50',
+    fontWeight: '600',
+    marginLeft: 8,
+    flex: 1,
+  },
+  botonConfirmarRecepcion: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#4CAF50',
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 10,
+  },
+  textoBotonConfirmar: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 8,
   },
   piePedido: {
     borderTopWidth: 1,

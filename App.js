@@ -22,6 +22,7 @@ import PantallaEditarPerfil from './screens/PantallaEditarPerfil';
 import PantallaConfiguracion from './screens/PantallaConfiguracion';
 import PantallaSobreEmpresa from './screens/PantallaSobreEmpresa';
 import PantallaAdministracion from './screens/PantallaAdministracion';
+import PantallaAdministracionPedidos from './screens/PantallaAdministracionPedidos';
 // Contextos
 import { ProveedorAuth, useAuth } from './contexts/ContextoAuth';
 import { ProveedorCarrito } from './contexts/ContextoCarrito';
@@ -104,29 +105,97 @@ function NavegadorPrincipal() {
   );
 }
 
-function Router() {
-  const { usuarioActual, modoInvitado, cargando } = useAuth();
+// NUEVO: Navegación principal para administradores (solo 3 pestañas)
+function NavegadorAdministrador() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let nombreIcono;
 
-  if (cargando) return <PantallaSplash />;
+          switch (route.name) {
+            case 'Productos':
+              nombreIcono = focused ? 'cube' : 'cube-outline';
+              break;
+            case 'PedidosAdmin':
+              nombreIcono = focused ? 'receipt' : 'receipt-outline';
+              break;
+            case 'Perfil':
+              nombreIcono = focused ? 'person' : 'person-outline';
+              break;
+          }
+
+          return <Ionicons name={nombreIcono} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: '#8B4513', 
+        tabBarInactiveTintColor: '#666',
+        tabBarStyle: {
+          backgroundColor: '#f8f8f8',
+          borderTopWidth: 1,
+          borderTopColor: '#e0e0e0',
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '500',
+        },
+        headerShown: false,
+      })}
+    >
+      <Tab.Screen 
+        name="Productos" 
+        component={PantallaAdministracion}
+        options={{ tabBarLabel: 'Productos' }}
+      />
+      <Tab.Screen 
+        name="PedidosAdmin" 
+        component={PantallaAdministracionPedidos}
+        options={{ tabBarLabel: 'Pedidos' }}
+      />
+      <Tab.Screen 
+        name="Perfil" 
+        component={PantallaPerfil}
+        options={{ tabBarLabel: 'Perfil' }}
+      />
+    </Tab.Navigator>
+  );
+}
+// FIN DE CAMBIO
+
+function Router() {
+  const { usuarioActual, modoInvitado, cargando, datosUsuario } = useAuth();
+
+  // Mostrar siempre splash mientras se determina el estado
+  if (cargando || (usuarioActual && !modoInvitado && !datosUsuario)) {
+    return <PantallaSplash />;
+  }
+
+  const esAdmin = datosUsuario?.esAdmin || false;
+  const usuarioAutenticado = usuarioActual || modoInvitado;
 
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {(usuarioActual || modoInvitado) ? (
-          // Usuario autenticado o en modo invitado - mostrar pantallas 
-          <>
-            <Stack.Screen name="PrincipalTabs" component={NavegadorPrincipal} />
+        {usuarioAutenticado ? (
+          // Rutas para usuarios autenticados/invitados
+          <Stack.Group>
+            <Stack.Screen 
+              name="PrincipalTabs" 
+              component={modoInvitado ? NavegadorPrincipal : (esAdmin ? NavegadorAdministrador : NavegadorPrincipal)} 
+            />
             <Stack.Screen name="EditarPerfil" component={PantallaEditarPerfil} />
             <Stack.Screen name="Configuracion" component={PantallaConfiguracion} />
-            <Stack.Screen name="Administracion" component={PantallaAdministracion} />
-          </>
+            <Stack.Screen name="SobreEmpresa" component={PantallaSobreEmpresa} />
+          </Stack.Group>
         ) : (
-          // Usuario no autenticado - mostrar pantalla de login
-          <>
+          // Rutas para usuarios no autenticados
+          <Stack.Group>
             <Stack.Screen name="Login" component={PantallaLogin} />
             <Stack.Screen name="Registro" component={PantallaRegistro} />
             <Stack.Screen name="SobreEmpresa" component={PantallaSobreEmpresa} />
-          </>
+          </Stack.Group>
         )}
       </Stack.Navigator>
     </NavigationContainer>

@@ -1,8 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect,  useRef } from 'react';
 import { doc, setDoc, getDoc, collection, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from './ContextoAuth';
 import { Alert } from 'react-native';
+
+
 
 const ContextoCarrito = createContext();
 
@@ -14,6 +16,15 @@ export const ProveedorCarrito = ({ children }) => {
   const [itemsCarrito, setItemsCarrito] = useState([]);
   const [cargandoCarrito, setCargandoCarrito] = useState(false);
   const { usuarioActual } = useAuth();
+
+   const montado = useRef(true);
+  
+  useEffect(() => {
+    montado.current = true;
+    return () => {
+      montado.current = false;
+    };
+  }, []);
   
   //   bloqueos para el modo 'invitado' (no permitir
   //   agregar, no guardar/cargar en Firestore, bloquear pedidos).
@@ -235,8 +246,21 @@ export const ProveedorCarrito = ({ children }) => {
 
   // Efecto para cargar carrito cuando el usuario cambie
   useEffect(() => {
-    cargarCarritoDesdeFirestore();
+    let montado = true;
+    
+    const cargar = async () => {
+      if (montado) {
+        await cargarCarritoDesdeFirestore();
+      }
+    };
+    
+    cargar();
+    
+    return () => {
+      montado = false;
+    };
   }, [usuarioActual]);
+  // FIN DE CAMBIO
 
   const valor = {
     itemsCarrito,

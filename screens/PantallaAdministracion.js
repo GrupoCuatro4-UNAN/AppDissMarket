@@ -31,15 +31,27 @@ export default function PantallaAdministracion({ navigation }) {
   const [guardando, setGuardando] = useState(false);
   
   
-  const [vistaActual, setVistaActual] = useState('agregar');
+ 
   const [productos, setProductos] = useState([]);
   const [cargandoProductos, setCargandoProductos] = useState(false);
   const [busqueda, setBusqueda] = useState('');
+   const [modalAgregar, setModalAgregar] = useState(false);
   const [modalEditar, setModalEditar] = useState(false);
   const [productoEditando, setProductoEditando] = useState(null);
 
   // Verifica si el usuario es administrador
-  if (!datosUsuario?.esAdmin) {
+ 
+  
+   const noEsAdmin = !datosUsuario?.esAdmin;
+
+  useEffect(() => {
+    if (!noEsAdmin) {
+      cargarProductos();
+    }
+  }, [noEsAdmin]);
+
+  // Si no es admin, mostrar pantalla de no autorizado
+  if (noEsAdmin) {
     return (
       <SafeAreaView style={styles.contenedor}>
         <View style={styles.noAutorizado}>
@@ -59,12 +71,6 @@ export default function PantallaAdministracion({ navigation }) {
     );
   }
 
-  
-  useEffect(() => {
-    if (vistaActual === 'gestionar') {
-      cargarProductos();
-    }
-  }, [vistaActual]);
 
   // Función para cargar productos
   const cargarProductos = async () => {
@@ -149,6 +155,8 @@ export default function PantallaAdministracion({ navigation }) {
       );
 
       limpiarFormulario();
+       setModalAgregar(false); 
+       cargarProductos();
     } catch (error) {
       console.error('Error al agregar producto:', error);
       Alert.alert('Error', 'No se pudo agregar el producto. Intenta nuevamente.');
@@ -202,6 +210,24 @@ export default function PantallaAdministracion({ navigation }) {
     }
   };
 
+  const alternarEstadoProducto = async (producto) => {
+    try {
+      const nuevoEstado = !producto.activo;
+      await updateDoc(doc(db, 'productos', producto.id), {
+        activo: nuevoEstado,
+        fechaActualizacion: new Date()
+      });
+      
+      Alert.alert(
+        '¡Actualizado!',
+        `El producto ahora está ${nuevoEstado ? 'activo' : 'inactivo'}`
+      );
+      cargarProductos();
+    } catch (error) {
+      console.error('Error al cambiar estado:', error);
+      Alert.alert('Error', 'No se pudo cambiar el estado del producto');
+    }
+  };
   // Función para eliminar producto
   const eliminarProducto = (producto) => {
     Alert.alert(
@@ -231,7 +257,7 @@ export default function PantallaAdministracion({ navigation }) {
   };
 
   
-  const TarjetaProducto = ({ item }) => (
+ const TarjetaProducto = ({ item }) => (
     <View style={styles.tarjetaProductoLista}>
       <View style={styles.imagenProductoContainer}>
         {item.imagenUrl ? (
@@ -263,6 +289,19 @@ export default function PantallaAdministracion({ navigation }) {
       </View>
 
       <View style={styles.botonesProducto}>
+        {/* NUEVO: Botón para alternar activo/inactivo */}
+        <TouchableOpacity 
+          style={[styles.botonIcono, { backgroundColor: item.activo ? '#e8f5e9' : '#ffebee' }]}
+          onPress={() => alternarEstadoProducto(item)}
+        >
+          <Ionicons 
+            name={item.activo ? "eye-outline" : "eye-off-outline"} 
+            size={24} 
+            color={item.activo ? '#4CAF50' : '#ff4757'} 
+          />
+        </TouchableOpacity>
+
+        {/* Botón editar */}
         <TouchableOpacity 
           style={styles.botonIcono}
           onPress={() => abrirModalEdicion(item)}
@@ -270,6 +309,7 @@ export default function PantallaAdministracion({ navigation }) {
           <Ionicons name="create-outline" size={24} color="#8B4513" />
         </TouchableOpacity>
         
+        {/* Botón eliminar */}
         <TouchableOpacity 
           style={[styles.botonIcono, styles.botonEliminarIcono]}
           onPress={() => eliminarProducto(item)}
@@ -278,6 +318,133 @@ export default function PantallaAdministracion({ navigation }) {
         </TouchableOpacity>
       </View>
     </View>
+  );
+
+  const FormularioProducto = () => (
+    <>
+      <View style={styles.campoContainer}>
+        <Text style={styles.etiqueta}>Nombre del Producto *</Text>
+        <View style={styles.inputWrapper}>
+          <Ionicons name="pricetag-outline" size={20} color="#666" style={styles.icono} />
+          <TextInput
+            style={styles.input}
+            value={nombre}
+            onChangeText={setNombre}
+            placeholder="Ej: Aceite de Cocina 1L"
+            placeholderTextColor="#999"
+            autoCapitalize="words"
+          />
+        </View>
+      </View>
+
+      <View style={styles.campoContainer}>
+        <Text style={styles.etiqueta}>Precio (C$) *</Text>
+        <View style={styles.inputWrapper}>
+          <Ionicons name="cash-outline" size={20} color="#666" style={styles.icono} />
+          <TextInput
+            style={styles.input}
+            value={precio}
+            onChangeText={setPrecio}
+            placeholder="0.00"
+            placeholderTextColor="#999"
+            keyboardType="decimal-pad"
+          />
+        </View>
+      </View>
+
+      <View style={styles.campoContainer}>
+        <Text style={styles.etiqueta}>Categoría</Text>
+        <View style={styles.inputWrapper}>
+          <Ionicons name="apps-outline" size={20} color="#666" style={styles.icono} />
+          <TextInput
+            style={styles.input}
+            value={categoria}
+            onChangeText={setCategoria}
+            placeholder="Ej: Alimentos, Bebidas, Limpieza"
+            placeholderTextColor="#999"
+            autoCapitalize="words"
+          />
+        </View>
+      </View>
+
+      <View style={styles.campoContainer}>
+        <Text style={styles.etiqueta}>URL de la Imagen</Text>
+        <View style={styles.inputWrapper}>
+          <Ionicons name="image-outline" size={20} color="#666" style={styles.icono} />
+          <TextInput
+            style={styles.input}
+            value={imagenUrl}
+            onChangeText={setImagenUrl}
+            placeholder="https://ejemplo.com/imagen.jpg"
+            placeholderTextColor="#999"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        </View>
+        {imagenUrl.trim() !== '' && (
+          <View style={styles.previsualizacion}>
+            <Text style={styles.textoPrevisualizacion}>Vista previa:</Text>
+            <Image 
+              source={{ uri: imagenUrl }} 
+              style={styles.imagenPrevia}
+              onError={() => Alert.alert('Error', 'No se pudo cargar la imagen')}
+            />
+          </View>
+        )}
+      </View>
+
+      <View style={styles.campoContainer}>
+        <Text style={styles.etiqueta}>Descripción</Text>
+        <View style={styles.inputWrapper}>
+          <Ionicons name="document-text-outline" size={20} color="#666" style={styles.icono} />
+          <TextInput
+            style={[styles.input, styles.inputMultilinea]}
+            value={descripcion}
+            onChangeText={setDescripcion}
+            placeholder="Descripción del producto..."
+            placeholderTextColor="#999"
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+          />
+        </View>
+      </View>
+
+      <View style={styles.campoContainer}>
+        <Text style={styles.etiqueta}>Stock Disponible</Text>
+        <View style={styles.inputWrapper}>
+          <Ionicons name="cube-outline" size={20} color="#666" style={styles.icono} />
+          <TextInput
+            style={styles.input}
+            value={stock}
+            onChangeText={setStock}
+            placeholder="0"
+            placeholderTextColor="#999"
+            keyboardType="number-pad"
+          />
+        </View>
+      </View>
+
+      <View style={styles.campoContainer}>
+        <View style={styles.switchContainer}>
+          <View style={styles.switchInfo}>
+            <Ionicons name="power-outline" size={20} color="#666" />
+            <View style={styles.switchTextos}>
+              <Text style={styles.etiqueta}>Producto Activo</Text>
+              <Text style={styles.subtextoSwitch}>
+                {activo ? 'Visible en el catálogo' : 'Oculto del catálogo'}
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity 
+            style={[styles.switchButton, activo && styles.switchButtonActivo]}
+            onPress={() => setActivo(!activo)}
+          >
+            <View style={[styles.switchCircle, activo && styles.switchCircleActivo]} />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </>
   );
 
   return (
@@ -292,201 +459,105 @@ export default function PantallaAdministracion({ navigation }) {
         </TouchableOpacity>
         
         <View style={styles.tituloHeader}>
-          <Text style={styles.textoTitulo}>Panel de Administración</Text>
+          <Text style={styles.textoTitulo}>Gestión de Productos</Text>
         </View>
         
-        <View style={styles.espacioVacio} />
+         {/* INICIO DE CAMBIO: Botón + para agregar producto */}
+        <TouchableOpacity 
+          style={styles.botonAgregarHeader}
+          onPress={() => {
+            limpiarFormulario();
+            setModalAgregar(true);
+          }}
+        >
+          <Ionicons name="add-circle" size={32} color="#8B4513" />
+        </TouchableOpacity>
+        {/* FIN DE CAMBIO */}
       </View>
 
-      {/* Cambiar entre vistas */}
-      <View style={styles.tabsContainer}>
-        <TouchableOpacity 
-          style={[styles.tab, vistaActual === 'agregar' && styles.tabActivo]}
-          onPress={() => setVistaActual('agregar')}
-        >
-          <Ionicons 
-            name="add-circle-outline" 
-            size={20} 
-            color={vistaActual === 'agregar' ? '#8B4513' : '#666'} 
+      {/* INICIO DE CAMBIO: Vista única de gestión de productos */}
+      <View style={styles.vistaGestionar}>
+        {/* Barra de búsqueda */}
+        <View style={styles.barraBusqueda}>
+          <Ionicons name="search-outline" size={24} color="#666" />
+          <TextInput
+            style={styles.inputBusqueda}
+            placeholder="Buscar productos..."
+            placeholderTextColor="#999"
+            value={busqueda}
+            onChangeText={setBusqueda}
           />
-          <Text style={[styles.textoTab, vistaActual === 'agregar' && styles.textoTabActivo]}>
-            Agregar
-          </Text>
-        </TouchableOpacity>
+          {busqueda !== '' && (
+            <TouchableOpacity onPress={() => setBusqueda('')}>
+              <Ionicons name="close-circle" size={24} color="#666" />
+            </TouchableOpacity>
+          )}
+        </View>
 
-        <TouchableOpacity 
-          style={[styles.tab, vistaActual === 'gestionar' && styles.tabActivo]}
-          onPress={() => setVistaActual('gestionar')}
-        >
-          <Ionicons 
-            name="settings-outline" 
-            size={20} 
-            color={vistaActual === 'gestionar' ? '#8B4513' : '#666'} 
-          />
-          <Text style={[styles.textoTab, vistaActual === 'gestionar' && styles.textoTabActivo]}>
-            Gestionar
+        {/* Contador de productos */}
+        <View style={styles.contadorProductos}>
+          <Text style={styles.textoContador}>
+            {productosFiltrados.length} {productosFiltrados.length === 1 ? 'producto' : 'productos'}
           </Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity onPress={cargarProductos}>
+            <Ionicons name="refresh-outline" size={24} color="#8B4513" />
+          </TouchableOpacity>
+        </View>
 
-      {/* Vista de Agregar Producto */}
-      {vistaActual === 'agregar' ? (
-        <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-          {/* Logo */}
-          <View style={styles.logoContainer}>
-            <LogoDissmar size="medium" />
-            <View style={styles.badgeAdmin}>
-              <Ionicons name="shield-checkmark" size={16} color="#fff" />
-              <Text style={styles.textoAdmin}>ADMINISTRADOR</Text>
-            </View>
+        {/* Lista de productos */}
+        {cargandoProductos ? (
+          <View style={styles.cargandoContainer}>
+            <ActivityIndicator size="large" color="#8B4513" />
+            <Text style={styles.textoCargando}>Cargando productos...</Text>
           </View>
+        ) : productosFiltrados.length === 0 ? (
+          <View style={styles.sinProductos}>
+            <Ionicons name="basket-outline" size={64} color="#ccc" />
+            <Text style={styles.textoSinProductos}>
+              {busqueda ? 'No se encontraron productos' : 'No hay productos en el catálogo'}
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={productosFiltrados}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <TarjetaProducto item={item} />}
+            contentContainerStyle={styles.listaProductos}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+      </View>
+      {/* FIN DE CAMBIO */}
 
-          {/* Formulario */}
-          <View style={styles.formulario}>
-            <Text style={styles.tituloFormulario}>Agregar Nuevo Producto</Text>
-
-            {/* Nombre del producto */}
-            <View style={styles.campoContainer}>
-              <Text style={styles.etiqueta}>Nombre del Producto *</Text>
-              <View style={styles.inputWrapper}>
-                <Ionicons name="pricetag-outline" size={20} color="#666" style={styles.icono} />
-                <TextInput
-                  style={styles.input}
-                  value={nombre}
-                  onChangeText={setNombre}
-                  placeholder="Ej: Aceite de Cocina 1L"
-                  placeholderTextColor="#999"
-                  autoCapitalize="words"
-                />
-              </View>
-            </View>
-
-            {/* Precio */}
-            <View style={styles.campoContainer}>
-              <Text style={styles.etiqueta}>Precio (C$) *</Text>
-              <View style={styles.inputWrapper}>
-                <Ionicons name="cash-outline" size={20} color="#666" style={styles.icono} />
-                <TextInput
-                  style={styles.input}
-                  value={precio}
-                  onChangeText={setPrecio}
-                  placeholder="0.00"
-                  placeholderTextColor="#999"
-                  keyboardType="decimal-pad"
-                />
-              </View>
-            </View>
-
-            {/* Categoría */}
-            <View style={styles.campoContainer}>
-              <Text style={styles.etiqueta}>Categoría</Text>
-              <View style={styles.inputWrapper}>
-                <Ionicons name="apps-outline" size={20} color="#666" style={styles.icono} />
-                <TextInput
-                  style={styles.input}
-                  value={categoria}
-                  onChangeText={setCategoria}
-                  placeholder="Ej: Alimentos, Bebidas, Limpieza"
-                  placeholderTextColor="#999"
-                  autoCapitalize="words"
-                />
-              </View>
-            </View>
-
-            {/* URL de la imagen */}
-            <View style={styles.campoContainer}>
-              <Text style={styles.etiqueta}>URL de la Imagen</Text>
-              <View style={styles.inputWrapper}>
-                <Ionicons name="image-outline" size={20} color="#666" style={styles.icono} />
-                <TextInput
-                  style={styles.input}
-                  value={imagenUrl}
-                  onChangeText={setImagenUrl}
-                  placeholder="https://ejemplo.com/imagen.jpg"
-                  placeholderTextColor="#999"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-              </View>
-              {imagenUrl.trim() !== '' && (
-                <View style={styles.previsualizacion}>
-                  <Text style={styles.textoPrevisualizacion}>Vista previa:</Text>
-                  <Image 
-                    source={{ uri: imagenUrl }} 
-                    style={styles.imagenPrevia}
-                    onError={() => Alert.alert('Error', 'No se pudo cargar la imagen')}
-                  />
-                </View>
-              )}
-            </View>
-
-            {/* Descripción */}
-            <View style={styles.campoContainer}>
-              <Text style={styles.etiqueta}>Descripción</Text>
-              <View style={styles.inputWrapper}>
-                <Ionicons name="document-text-outline" size={20} color="#666" style={styles.icono} />
-                <TextInput
-                  style={[styles.input, styles.inputMultilinea]}
-                  value={descripcion}
-                  onChangeText={setDescripcion}
-                  placeholder="Descripción del producto..."
-                  placeholderTextColor="#999"
-                  multiline
-                  numberOfLines={4}
-                  textAlignVertical="top"
-                />
-              </View>
-            </View>
-
-            {/* Stock */}
-            <View style={styles.campoContainer}>
-              <Text style={styles.etiqueta}>Stock Disponible</Text>
-              <View style={styles.inputWrapper}>
-                <Ionicons name="cube-outline" size={20} color="#666" style={styles.icono} />
-                <TextInput
-                  style={styles.input}
-                  value={stock}
-                  onChangeText={setStock}
-                  placeholder="0"
-                  placeholderTextColor="#999"
-                  keyboardType="number-pad"
-                />
-              </View>
-            </View>
-
-            {/* Estado activo siempre, para inactivo eliminar */}
-            <View style={styles.campoContainer}>
-              <View style={styles.switchContainer}>
-                <View style={styles.switchInfo}>
-                  <Ionicons name="power-outline" size={20} color="#666" />
-                  <View style={styles.switchTextos}>
-                    <Text style={styles.etiqueta}>Producto Activo</Text>
-                    <Text style={styles.subtextoSwitch}>
-                      {activo ? 'Visible en el catálogo' : 'Oculto del catálogo'}
-                    </Text>
-                  </View>
-                </View>
+      {/* INICIO DE CAMBIO: Modal para AGREGAR producto */}
+      <Modal
+        visible={modalAgregar}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => {
+          setModalAgregar(false);
+          limpiarFormulario();
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContenido}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitulo}>Agregar Producto</Text>
                 <TouchableOpacity 
-                  style={[styles.switchButton, activo && styles.switchButtonActivo]}
-                  onPress={() => setActivo(!activo)}
+                  onPress={() => {
+                    setModalAgregar(false);
+                    limpiarFormulario();
+                  }}
                 >
-                  <View style={[styles.switchCircle, activo && styles.switchCircleActivo]} />
+                  <Ionicons name="close-circle-outline" size={30} color="#666" />
                 </TouchableOpacity>
               </View>
-            </View>
 
-            {/* Botones */}
-            <View style={styles.botonesContainer}>
-              <TouchableOpacity 
-                style={styles.botonLimpiar}
-                onPress={limpiarFormulario}
-              >
-                <Ionicons name="refresh-outline" size={20} color="#666" />
-                <Text style={styles.textoBotonLimpiar}>Limpiar</Text>
-              </TouchableOpacity>
+              <FormularioProducto />
 
               <TouchableOpacity 
-                style={[styles.botonAgregar, guardando && styles.botonDeshabilitado]}
+                style={[styles.botonActualizar, guardando && styles.botonDeshabilitado]}
                 onPress={agregarProducto}
                 disabled={guardando}
               >
@@ -495,74 +566,17 @@ export default function PantallaAdministracion({ navigation }) {
                 ) : (
                   <>
                     <Ionicons name="add-circle-outline" size={20} color="#fff" />
-                    <Text style={styles.textoBotonAgregar}>Agregar Producto</Text>
+                    <Text style={styles.textoBotonActualizar}>Agregar Producto</Text>
                   </>
                 )}
               </TouchableOpacity>
-            </View>
-
-            <Text style={styles.notaCampos}>* Campos obligatorios</Text>
+            </ScrollView>
           </View>
-
-          {}
-        
-        </ScrollView>
-      ) : (
-        /* Vista de Gestionar Productos */
-        <View style={styles.vistaGestionar}>
-          {/* Barra de búsqueda */}
-          <View style={styles.barraBusqueda}>
-            <Ionicons name="search-outline" size={24} color="#666" />
-            <TextInput
-              style={styles.inputBusqueda}
-              placeholder="Buscar productos..."
-              placeholderTextColor="#999"
-              value={busqueda}
-              onChangeText={setBusqueda}
-            />
-            {busqueda !== '' && (
-              <TouchableOpacity onPress={() => setBusqueda('')}>
-                <Ionicons name="close-circle" size={24} color="#666" />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Contador de productos */}
-          <View style={styles.contadorProductos}>
-            <Text style={styles.textoContador}>
-              {productosFiltrados.length} {productosFiltrados.length === 1 ? 'producto' : 'productos'}
-            </Text>
-            <TouchableOpacity onPress={cargarProductos}>
-              <Ionicons name="refresh-outline" size={24} color="#8B4513" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Lista de productos */}
-          {cargandoProductos ? (
-            <View style={styles.cargandoContainer}>
-              <ActivityIndicator size="large" color="#8B4513" />
-              <Text style={styles.textoCargando}>Cargando productos...</Text>
-            </View>
-          ) : productosFiltrados.length === 0 ? (
-            <View style={styles.sinProductos}>
-              <Ionicons name="basket-outline" size={64} color="#ccc" />
-              <Text style={styles.textoSinProductos}>
-                {busqueda ? 'No se encontraron productos' : 'No hay productos en el catálogo'}
-              </Text>
-            </View>
-          ) : (
-            <FlatList
-              data={productosFiltrados}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => <TarjetaProducto item={item} />}
-              contentContainerStyle={styles.listaProductos}
-              showsVerticalScrollIndicator={false}
-            />
-          )}
         </View>
-      )}
+      </Modal>
+      {/* FIN DE CAMBIO */}
 
-      {/* Para editar producto */}
+      {/* Modal para EDITAR producto */}
       <Modal
         visible={modalEditar}
         animationType="slide"
@@ -587,125 +601,7 @@ export default function PantallaAdministracion({ navigation }) {
                 </TouchableOpacity>
               </View>
 
-              <View style={styles.campoContainer}>
-                <Text style={styles.etiqueta}>Nombre del Producto *</Text>
-                <View style={styles.inputWrapper}>
-                  <Ionicons name="pricetag-outline" size={20} color="#666" style={styles.icono} />
-                  <TextInput
-                    style={styles.input}
-                    value={nombre}
-                    onChangeText={setNombre}
-                    placeholder="Nombre del producto"
-                    placeholderTextColor="#999"
-                    autoCapitalize="words"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.campoContainer}>
-                <Text style={styles.etiqueta}>Precio (C$) *</Text>
-                <View style={styles.inputWrapper}>
-                  <Ionicons name="cash-outline" size={20} color="#666" style={styles.icono} />
-                  <TextInput
-                    style={styles.input}
-                    value={precio}
-                    onChangeText={setPrecio}
-                    placeholder="0.00"
-                    placeholderTextColor="#999"
-                    keyboardType="decimal-pad"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.campoContainer}>
-                <Text style={styles.etiqueta}>Categoría</Text>
-                <View style={styles.inputWrapper}>
-                  <Ionicons name="apps-outline" size={20} color="#666" style={styles.icono} />
-                  <TextInput
-                    style={styles.input}
-                    value={categoria}
-                    onChangeText={setCategoria}
-                    placeholder="Categoría"
-                    placeholderTextColor="#999"
-                    autoCapitalize="words"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.campoContainer}>
-                <Text style={styles.etiqueta}>URL de la Imagen</Text>
-                <View style={styles.inputWrapper}>
-                  <Ionicons name="image-outline" size={20} color="#666" style={styles.icono} />
-                  <TextInput
-                    style={styles.input}
-                    value={imagenUrl}
-                    onChangeText={setImagenUrl}
-                    placeholder="URL de la imagen"
-                    placeholderTextColor="#999"
-                    autoCapitalize="none"
-                  />
-                </View>
-                {imagenUrl.trim() !== '' && (
-                  <View style={styles.previsualizacion}>
-                    <Image 
-                      source={{ uri: imagenUrl }} 
-                      style={styles.imagenPrevia}
-                    />
-                  </View>
-                )}
-              </View>
-
-              <View style={styles.campoContainer}>
-                <Text style={styles.etiqueta}>Descripción</Text>
-                <View style={styles.inputWrapper}>
-                  <Ionicons name="document-text-outline" size={20} color="#666" style={styles.icono} />
-                  <TextInput
-                    style={[styles.input, styles.inputMultilinea]}
-                    value={descripcion}
-                    onChangeText={setDescripcion}
-                    placeholder="Descripción..."
-                    placeholderTextColor="#999"
-                    multiline
-                    numberOfLines={4}
-                    textAlignVertical="top"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.campoContainer}>
-                <Text style={styles.etiqueta}>Stock Disponible</Text>
-                <View style={styles.inputWrapper}>
-                  <Ionicons name="cube-outline" size={20} color="#666" style={styles.icono} />
-                  <TextInput
-                    style={styles.input}
-                    value={stock}
-                    onChangeText={setStock}
-                    placeholder="0"
-                    placeholderTextColor="#999"
-                    keyboardType="number-pad"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.campoContainer}>
-                <View style={styles.switchContainer}>
-                  <View style={styles.switchInfo}>
-                    <Ionicons name="power-outline" size={20} color="#666" />
-                    <View style={styles.switchTextos}>
-                      <Text style={styles.etiqueta}>Producto Activo</Text>
-                      <Text style={styles.subtextoSwitch}>
-                        {activo ? 'Visible en el catálogo' : 'Oculto del catálogo'}
-                      </Text>
-                    </View>
-                  </View>
-                  <TouchableOpacity 
-                    style={[styles.switchButton, activo && styles.switchButtonActivo]}
-                    onPress={() => setActivo(!activo)}
-                  >
-                    <View style={[styles.switchCircle, activo && styles.switchCircleActivo]} />
-                  </TouchableOpacity>
-                </View>
-              </View>
+              <FormularioProducto />
 
               <TouchableOpacity 
                 style={[styles.botonActualizar, guardando && styles.botonDeshabilitado]}
@@ -728,6 +624,7 @@ export default function PantallaAdministracion({ navigation }) {
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   contenedor: {
@@ -758,6 +655,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
+  },
+
+   botonAgregarHeader: {
+    padding: 5,
   },
   espacioVacio: {
     width: 34,
