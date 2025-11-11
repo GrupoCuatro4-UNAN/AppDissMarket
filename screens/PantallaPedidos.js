@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
   },
   textoConfirmacion: {
     fontSize: 13,
-    color: '#4CAF50',
+    color: '#8B4513',
     fontWeight: '600',
     marginLeft: 8,
     flex: 1,
@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#8B4513',
     paddingVertical: 12,
     borderRadius: 12,
     marginTop: 10,
