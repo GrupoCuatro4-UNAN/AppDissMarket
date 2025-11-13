@@ -1,10 +1,8 @@
-import React, { createContext, useContext, useState, useEffect,  useRef } from 'react';
-import { doc, setDoc, getDoc, collection, addDoc } from 'firebase/firestore';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { doc, setDoc, getDoc, collection, addDoc, updateDoc, increment, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from './ContextoAuth';
 import { Alert } from 'react-native';
-
-
 
 const ContextoCarrito = createContext();
 
@@ -17,7 +15,7 @@ export const ProveedorCarrito = ({ children }) => {
   const [cargandoCarrito, setCargandoCarrito] = useState(false);
   const { usuarioActual } = useAuth();
 
-   const montado = useRef(true);
+  const montado = useRef(true);
   
   useEffect(() => {
     montado.current = true;
@@ -25,20 +23,16 @@ export const ProveedorCarrito = ({ children }) => {
       montado.current = false;
     };
   }, []);
-  
-  //   bloqueos para el modo 'invitado' (no permitir
-  //   agregar, no guardar/cargar en Firestore, bloquear pedidos).
 
   // Función para agregar productos al carrito
   const agregarAlCarrito = async (producto, cantidad = 1) => {
     console.log('Agregando al carrito:', { producto, cantidad });
-    // No permitir agregar al carrito si no hay usuario real (incluye invitado)
+    
     if (!usuarioActual || usuarioActual.uid === 'invitado') {
       Alert.alert('Inicia sesión', 'Debes iniciar sesión o crear una cuenta para agregar productos al carrito');
       return;
     }
 
-   
     if (!producto.id || !producto.nombre || !producto.precio) {
       console.error('Producto inválido:', producto);
       Alert.alert('Error', 'El producto no tiene la información necesaria');
@@ -50,14 +44,12 @@ export const ProveedorCarrito = ({ children }) => {
       let nuevosItems;
 
       if (itemExistente) {
-        // Si el producto ya existe, actualizar cantidad
         nuevosItems = itemsCarrito.map(item =>
           item.id === producto.id
             ? { ...item, cantidad: item.cantidad + cantidad }
             : item
         );
       } else {
-       
         nuevosItems = [...itemsCarrito, {
           id: producto.id,
           nombre: producto.nombre,
@@ -70,7 +62,6 @@ export const ProveedorCarrito = ({ children }) => {
       setItemsCarrito(nuevosItems);
       await guardarCarritoEnFirestore(nuevosItems);
       
-      // Alert solo para productos individuales, no para reorden 
       if (cantidad === 1) {
         Alert.alert('¡Agregado!', `${producto.nombre} agregado al carrito`);
       }
@@ -135,9 +126,7 @@ export const ProveedorCarrito = ({ children }) => {
     return itemsCarrito.reduce((total, item) => total + item.cantidad, 0);
   };
 
-  // Función para realizar pedido
-  // crea documento 'pedidos' en Firestore con items y datos.
-  //  bloquea la acción si el usuario es 'invitado'.
+  
   const realizarPedido = async (direccionEnvio) => {
     console.log('Iniciando proceso de pedido...', { usuarioActual, itemsCarrito });
     
@@ -155,6 +144,42 @@ export const ProveedorCarrito = ({ children }) => {
       console.log('Creando pedido...');
       setCargandoCarrito(true);
       
+      
+      const productosConStockInsuficiente = [];
+      
+      for (const item of itemsCarrito) {
+        const productoRef = doc(db, 'productos', item.id);
+        const productoSnap = await getDoc(productoRef);
+        
+        if (productoSnap.exists()) {
+          const productoData = productoSnap.data();
+          const stockActual = productoData.stock || 0;
+          
+          if (stockActual < item.cantidad) {
+            productosConStockInsuficiente.push({
+              nombre: item.nombre,
+              stockDisponible: stockActual,
+              cantidadSolicitada: item.cantidad
+            });
+          }
+        }
+      }
+
+     
+      if (productosConStockInsuficiente.length > 0) {
+        const mensajeStock = productosConStockInsuficiente
+          .map(p => `${p.nombre}: solicitaste ${p.cantidadSolicitada}, solo hay ${p.stockDisponible}`)
+          .join('\n');
+        
+        Alert.alert(
+          'Stock insuficiente',
+          `Los siguientes productos no tienen stock suficiente:\n\n${mensajeStock}`,
+          [{ text: 'OK' }]
+        );
+        
+        return { success: false, error: 'Stock insuficiente' };
+      }
+
       const pedido = {
         usuarioId: usuarioActual.uid,
         items: itemsCarrito,
@@ -167,16 +192,37 @@ export const ProveedorCarrito = ({ children }) => {
 
       console.log('Datos del pedido:', pedido);
 
-      // Guardar pedido en la base de datos
-      const docRef = await addDoc(collection(db, 'pedidos'), pedido);
-      console.log('Pedido guardado con ID:', docRef.id);
+     
+      const batch = writeBatch(db);
+
+     
+      const pedidoRef = doc(collection(db, 'pedidos'));
+      batch.set(pedidoRef, pedido);
       
-      // Limpiar carrito después del pedido exitoso
+      
+      console.log('Preparando actualización de stock...');
+      for (const item of itemsCarrito) {
+        const productoRef = doc(db, 'productos', item.id);
+        
+       
+        batch.update(productoRef, {
+          stock: increment(-item.cantidad),
+          fechaActualizacion: new Date()
+        });
+        
+        console.log(`Preparando actualización de stock para ${item.nombre}: -${item.cantidad}`);
+      }
+
+     
+      await batch.commit();
+      console.log('Pedido guardado y stock actualizado con ID:', pedidoRef.id);
+      
+      
       await limpiarCarrito();
       
       Alert.alert(
         '¡Pedido realizado!', 
-        `Tu pedido #${docRef.id.substring(0, 8)} ha sido enviado correctamente. Total: C$ ${calcularTotal().toFixed(2)}`,
+        `Tu pedido #${pedidoRef.id.substring(0, 8)} ha sido enviado correctamente. Total: C$ ${calcularTotal().toFixed(2)}`,
         [
           {
             text: 'Ver Pedidos',
@@ -189,7 +235,7 @@ export const ProveedorCarrito = ({ children }) => {
         ]
       );
       
-      return { success: true, pedidoId: docRef.id };
+      return { success: true, pedidoId: pedidoRef.id };
     } catch (error) {
       console.error('Error al realizar pedido:', error);
       Alert.alert('Error', `No se pudo realizar el pedido: ${error.message}`);
@@ -199,10 +245,8 @@ export const ProveedorCarrito = ({ children }) => {
     }
   };
 
-  // Función para guardar carrito en la base de datos
-  // no guardar para usuarios invitados (uid === 'invitado'). Esto evita escribir
+ 
   const guardarCarritoEnFirestore = async (items) => {
-    // No guardar carrito en Firestore para usuarios invitados
     if (!usuarioActual || usuarioActual.uid === 'invitado') return;
     
     try {
@@ -216,10 +260,8 @@ export const ProveedorCarrito = ({ children }) => {
     }
   };
 
-  // Función para cargar carrito desde la base de datos
-  // no cargar datos para usuarios invitados; el carrito del invitado se mantiene
+  
   const cargarCarritoDesdeFirestore = async () => {
-    // No cargar carrito de Firestore para usuarios invitados
     if (!usuarioActual || usuarioActual.uid === 'invitado') {
       setItemsCarrito([]);
       return;
@@ -244,7 +286,7 @@ export const ProveedorCarrito = ({ children }) => {
     }
   };
 
-  // Efecto para cargar carrito cuando el usuario cambie
+  
   useEffect(() => {
     let montado = true;
     
@@ -260,7 +302,6 @@ export const ProveedorCarrito = ({ children }) => {
       montado = false;
     };
   }, [usuarioActual]);
-  // FIN DE CAMBIO
 
   const valor = {
     itemsCarrito,

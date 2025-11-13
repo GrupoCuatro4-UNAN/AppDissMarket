@@ -99,7 +99,7 @@ export default function PantallaPedidos() {
               // Agregar cada producto del pedido al carrito
               for (const item of pedido.items) {
                 try {
-                  // Crear objeto producto compatible con agregarAlCarrito
+                  
                   const productoParaCarrito = {
                     id: item.productId || item.id || `temp-${Date.now()}-${Math.random()}`,
                     nombre: item.nombre,
@@ -175,7 +175,7 @@ export default function PantallaPedidos() {
                 'Has confirmado la recepción de tu pedido. ¡Gracias por tu compra!'
               );
 
-              cargarPedidos(); // Recargar para mostrar la confirmación
+              cargarPedidos(); 
             } catch (error) {
               console.error('Error al confirmar recepción:', error);
               Alert.alert('Error', 'No se pudo confirmar la recepción del pedido');
@@ -246,7 +246,7 @@ export default function PantallaPedidos() {
         ))}
       </View>
 
-      {/* NUEVO: Mostrar si el cliente ya confirmó recepción */}
+      {/*  Mostrar si el cliente ya confirmó recepción */}
       {item.clienteConfirmoRecepcion && (
         <View style={styles.confirmacionRecepcion}>
           <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
@@ -276,7 +276,7 @@ export default function PantallaPedidos() {
         </View>
       </View>
 
-      {/* NUEVO: Botón para confirmar recepción (solo si está entregado y no confirmado) */}
+      {/* Botón para confirmar recepción (solo si está entregado y no confirmado) */}
       {item.estado === 'entregado' && !item.clienteConfirmoRecepcion && (
         <TouchableOpacity 
           style={styles.botonConfirmarRecepcion}

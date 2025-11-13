@@ -289,7 +289,7 @@ export default function PantallaAdministracion({ navigation }) {
       </View>
 
       <View style={styles.botonesProducto}>
-        {/* NUEVO: Botón para alternar activo/inactivo */}
+       
         <TouchableOpacity 
           style={[styles.botonIcono, { backgroundColor: item.activo ? '#e8f5e9' : '#ffebee' }]}
           onPress={() => alternarEstadoProducto(item)}
@@ -462,7 +462,7 @@ export default function PantallaAdministracion({ navigation }) {
           <Text style={styles.textoTitulo}>Gestión de Productos</Text>
         </View>
         
-         {/* INICIO DE CAMBIO: Botón + para agregar producto */}
+        
         <TouchableOpacity 
           style={styles.botonAgregarHeader}
           onPress={() => {
@@ -472,10 +472,10 @@ export default function PantallaAdministracion({ navigation }) {
         >
           <Ionicons name="add-circle" size={32} color="#8B4513" />
         </TouchableOpacity>
-        {/* FIN DE CAMBIO */}
+       
       </View>
 
-      {/* INICIO DE CAMBIO: Vista única de gestión de productos */}
+      
       <View style={styles.vistaGestionar}>
         {/* Barra de búsqueda */}
         <View style={styles.barraBusqueda}>
@@ -527,9 +527,9 @@ export default function PantallaAdministracion({ navigation }) {
           />
         )}
       </View>
-      {/* FIN DE CAMBIO */}
+     
 
-      {/* INICIO DE CAMBIO: Modal para AGREGAR producto */}
+     
       <Modal
         visible={modalAgregar}
         animationType="slide"
@@ -574,9 +574,7 @@ export default function PantallaAdministracion({ navigation }) {
           </View>
         </View>
       </Modal>
-      {/* FIN DE CAMBIO */}
-
-      {/* Modal para EDITAR producto */}
+     
       <Modal
         visible={modalEditar}
         animationType="slide"

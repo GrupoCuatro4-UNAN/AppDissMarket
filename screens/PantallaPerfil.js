@@ -14,8 +14,7 @@ import LogoDissmar from '../components/LogoDissmar';
 
 
 export default function PantallaPerfil({ navigation }) {
-  // está navegando como invitado. Esto permite mostrar "Regresar al Login" en vez
-  // de "Cerrar sesión" y evitar llamadas a Firebase para el invitado.
+  
   const { usuarioActual, datosUsuario, cerrarSesion, modoInvitado } = useAuth();
 
   // Función para manejar el cierre de sesión
@@ -34,7 +33,7 @@ export default function PantallaPerfil({ navigation }) {
           onPress: async () => {
             try {
               await cerrarSesion();
-              // No necesitamos navegar manualmente, el Router lo hará automáticamente
+             
             } catch (error) {
               console.error('Error al cerrar sesión:', error);
               Alert.alert('Error', 'Hubo un problema al cerrar sesión');
@@ -44,10 +43,7 @@ export default function PantallaPerfil({ navigation }) {
       ]
     );
   };
-  // FIN DE CAMBIO
-  // Manejar regresar al login cuando se está en modo invitado
-  // confirmar y luego llamar a cerrarSesion() para limpiar el estado
-  // de invitado y volver al flujo de Login 
+ 
   const manejarRegresarLogin = () => {
     Alert.alert(
       'Volver al inicio',
@@ -106,14 +102,14 @@ export default function PantallaPerfil({ navigation }) {
             {usuarioActual?.email || 'email@ejemplo.com'}
           </Text>
 
-                {/* INICIO DE CAMBIO: Mostrar badge de admin si corresponde */}
+             
           {datosUsuario?.esAdmin && (
             <View style={styles.badgeAdmin}>
               <Ionicons name="shield-checkmark" size={16} color="#fff" />
               <Text style={styles.textoAdmin}>ADMINISTRADOR</Text>
             </View>
           )}
-          {/* FIN DE CAMBIO */}
+        
         </View>
 
         {/* Datos Personales */}
@@ -192,7 +188,7 @@ export default function PantallaPerfil({ navigation }) {
           </TouchableOpacity>
 
           {modoInvitado ? (
-            // Interfaz mostrada cuando el usuario está en modo invitado
+           
             <TouchableOpacity style={styles.opcionMenu} onPress={manejarRegresarLogin}>
               <View style={styles.iconoOpcion}>
                 <Ionicons name="arrow-back-outline" size={24} color="#8B4513" />
@@ -201,7 +197,7 @@ export default function PantallaPerfil({ navigation }) {
               <Ionicons name="chevron-forward-outline" size={20} color="#ccc" />
             </TouchableOpacity>
           ) : (
-            // Interfaz para usuarios autenticados reales: opción de cerrar sesión
+            
             <TouchableOpacity style={styles.opcionMenu} onPress={manejarCerrarSesion}>
               <View style={styles.iconoOpcion}>
                 <Ionicons name="log-out-outline" size={24} color="#ff4757" />
@@ -311,7 +307,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 5,
   },
-  // FIN DE CAMBIO
+ 
   seccion: {
     backgroundColor: '#fff',
     marginHorizontal: 20,

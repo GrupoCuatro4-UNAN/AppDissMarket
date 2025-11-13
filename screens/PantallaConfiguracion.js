@@ -102,19 +102,19 @@ export default function PantallaConfiguracion({ navigation }) {
       const batch = writeBatch(db);
       const userId = usuarioActual.uid;
 
-      // 1. Eliminar datos del usuario
+      
       const userDoc = doc(db, 'usuarios', userId);
       batch.delete(userDoc);
 
-      // 2. Eliminar favoritos
+     
       const favoritosDoc = doc(db, 'favoritos', userId);
       batch.delete(favoritosDoc);
 
-      // 3. Eliminar carrito
+     
       const carritoDoc = doc(db, 'carritos', userId);
       batch.delete(carritoDoc);
 
-      // 4. Eliminar todos los pedidos del usuario
+      
       const pedidosQuery = query(
         collection(db, 'pedidos'),
         where('usuarioId', '==', userId)
@@ -125,10 +125,9 @@ export default function PantallaConfiguracion({ navigation }) {
         batch.delete(doc.ref);
       });
 
-      // 5. Ejecutar todas las eliminaciones en la base de datos
       await batch.commit();
 
-      // 6. Eliminar cuenta de Authentication 
+      
       await deleteUser(usuarioActual);
 
       Alert.alert(

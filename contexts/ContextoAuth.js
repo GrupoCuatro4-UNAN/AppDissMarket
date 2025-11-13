@@ -15,7 +15,7 @@ export const ProveedorAuth = ({ children }) => {
   const [usuarioActual, setUsuarioActual] = useState(null);
   const [datosUsuario, setDatosUsuario] = useState(null);
   const [cargando, setCargando] = useState(true);
-  const [modoInvitado, setModoInvitado] = useState(false); // NUEVO
+  const [modoInvitado, setModoInvitado] = useState(false); 
 
  
   
@@ -58,7 +58,7 @@ export const ProveedorAuth = ({ children }) => {
         fechaActualizacion: new Date()
       });
 
-      // Actualizar el estado local
+      
       setDatosUsuario(prev => ({
         ...prev,
         ...nuevosDatos
@@ -70,32 +70,28 @@ export const ProveedorAuth = ({ children }) => {
       return { success: false, error: error.message };
     }
   };
-  // actualizarPerfil: evita que un invitado modifique datos.
- // INICIO DE CAMBIO: Mejorar función de cerrar sesión
+  
   const cerrarSesion = async () => {
     try {
-      // Primero limpiar estados locales
+     
       setUsuarioActual(null);
       setDatosUsuario(null);
       setModoInvitado(false);
       
-      // Luego cerrar sesión en Firebase (solo si no es invitado)
+    
       if (!modoInvitado && auth.currentUser) {
         await signOut(auth);
       }
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
-      // Aún si hay error, limpiar estados
+      
       setUsuarioActual(null);
       setDatosUsuario(null);
       setModoInvitado(false);
     }
   };
 
-  // entrarComoInvitado:
-  // - Propósito (usuario): crear un usuario temporal en memoria con uid 'invitado' y datos por defecto.
-  // - Uso: permite navegar por la app sin estar autenticado, con funciones limitadas.
-  // - alerta para informar al usuario de las limitaciones.
+ 
   const entrarComoInvitado = () => {
     setUsuarioActual({ uid: 'invitado', email: 'invitado@dissmar.com' });
     setDatosUsuario({
@@ -109,9 +105,7 @@ export const ProveedorAuth = ({ children }) => {
     Alert.alert('Bienvenido', 'Has ingresado como invitado. Algunas funciones pueden estar limitadas.');
   };
 
-  //   la dependencia [modoInvitado] evita que el observable sobrescriba
-  //   el estado de invitado inmediatamente después de llamar entrarComoInvitado().
-  // INICIO DE CAMBIO: Mejorar useEffect con limpieza adecuada
+ 
   useEffect(() => {
     let montado = true;
     
@@ -123,7 +117,7 @@ export const ProveedorAuth = ({ children }) => {
         setModoInvitado(false);
         await obtenerDatosUsuario(usuario.uid);
       } else {
-        // Solo limpiar si no estamos en modo invitado
+       
         if (!modoInvitado) {
           setUsuarioActual(null);
           setDatosUsuario(null);

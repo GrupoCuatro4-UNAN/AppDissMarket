@@ -13,7 +13,7 @@ import {
   Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useCarrito } from '../contexts/ContextoCarrito';
 import { useFavoritos } from '../contexts/ContextoFavoritos';
@@ -32,14 +32,21 @@ export default function PantallaCatalogo() {
   const { alternarFavorito, esFavorito } = useFavoritos();
   const { datosUsuario } = useAuth();
 
-  // Función para cargar productos desde la base de datos
+
   const cargarProductos = async () => {
     try {
       setCargando(true);
-      const q = query(collection(db, 'productos'), orderBy('nombre'));
-      const querySnapshot = await getDocs(q);
       
+    
+      const q = query(
+        collection(db, 'productos'), 
+        where('activo', '==', true),  
+        orderBy('nombre')
+      );
+      
+      const querySnapshot = await getDocs(q);
       const productosData = [];
+      
       querySnapshot.forEach((doc) => {
         const data = doc.data();
         productosData.push({
@@ -50,6 +57,8 @@ export default function PantallaCatalogo() {
 
       setProductos(productosData);
       setProductosFiltrados(productosData);
+      
+      console.log(`✅ Productos activos cargados: ${productosData.length}`); 
     } catch (error) {
       console.error('Error al cargar productos:', error);
       Alert.alert('Error', 'No se pudieron cargar los productos');
@@ -65,15 +74,19 @@ export default function PantallaCatalogo() {
     setRefrescando(false);
   };
 
-  // Función para filtrar productos por búsqueda nombre
+ 
   const filtrarProductos = (texto) => {
     setTextoBusqueda(texto);
     if (texto.trim() === '') {
-      setProductosFiltrados(productos);
+     
+      setProductosFiltrados(productos.filter(p => p.activo !== false));
     } else {
       const filtrados = productos.filter(producto =>
-        producto.nombre.toLowerCase().includes(texto.toLowerCase()) ||
-        (producto.categoria && producto.categoria.toLowerCase().includes(texto.toLowerCase()))
+        // Verificar que el producto esté activo Y coincida con la búsqueda
+        producto.activo !== false && (
+          producto.nombre.toLowerCase().includes(texto.toLowerCase()) ||
+          (producto.categoria && producto.categoria.toLowerCase().includes(texto.toLowerCase()))
+        )
       );
       setProductosFiltrados(filtrados);
     }
@@ -92,7 +105,7 @@ export default function PantallaCatalogo() {
   // Componente para renderizar cada producto
   const TarjetaProducto = ({ item }) => (
     <View style={styles.tarjetaProducto}>
-      {/* Imagen del producto */}
+     
       <View style={styles.contenedorImagen}>
         {item.imagenUrl ? (
           <Image source={{ uri: item.imagenUrl }} style={styles.imagenProducto} />
@@ -120,13 +133,33 @@ export default function PantallaCatalogo() {
         <Text style={styles.nombreProducto}>{item.nombre}</Text>
         <Text style={styles.precioProducto}>C$ {item.precio.toFixed(2)}</Text>
         
-        {/* Botón agregar */}
+        {/* Mostrar stock disponible si existe */}
+        {item.stock !== undefined && (
+          <Text style={styles.stockProducto}>
+            Stock: {item.stock > 0 ? item.stock : 'Agotado'}
+          </Text>
+        )}
+        
+        {/* Deshabilitar si no hay stock */}
         <TouchableOpacity 
-          style={styles.botonAgregar}
+          style={[
+            styles.botonAgregar,
+            item.stock !== undefined && item.stock <= 0 && styles.botonDeshabilitado
+          ]}
           onPress={() => manejarAgregarCarrito(item)}
+          disabled={item.stock !== undefined && item.stock <= 0}
         >
-          <Ionicons name="add-circle-outline" size={20} color="#8B4513" />
-          <Text style={styles.textoBotonAgregar}>Agregar</Text>
+          <Ionicons 
+            name={item.stock > 0 ? "add-circle-outline" : "close-circle-outline"} 
+            size={20} 
+            color={item.stock > 0 ? "#8B4513" : "#999"} 
+          />
+          <Text style={[
+            styles.textoBotonAgregar,
+            item.stock <= 0 && styles.textoBotonDeshabilitado
+          ]}>
+            {item.stock > 0 ? 'Agregar' : 'Sin stock'}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -247,7 +280,7 @@ const styles = StyleSheet.create({
     color: '#666',
     fontStyle: 'italic',
     marginLeft: 20,
-     textAlign: 'center',
+    textAlign: 'center',
   },
   contenedorBusqueda: {
     flexDirection: 'row',
@@ -350,6 +383,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#8B4513',
+    marginBottom: 5,
+  },
+ 
+  stockProducto: {
+    fontSize: 12,
+    color: '#666',
     marginBottom: 10,
   },
   botonAgregar: {
@@ -361,10 +400,19 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
   },
+  
+  botonDeshabilitado: {
+    backgroundColor: '#f5f5f5',
+    opacity: 0.6,
+  },
   textoBotonAgregar: {
     color: '#8B4513',
     fontWeight: '600',
     marginLeft: 5,
+  },
+ 
+  textoBotonDeshabilitado: {
+    color: '#999',
   },
   sinProductos: {
     flex: 1,

@@ -3,11 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-//  Ajustes realizados para soportar 'modo invitado'
-//  ORIGINAL: App usaba onAuthStateChanged(local) para decidir si mostrar Login o PrincipalTabs.
-//  MODIFICACIÓN: extracción de esa lógica al contexto `ContextoAuth` y creación
-//  `modoInvitado === true`. Esto permite que la acción "Entrar como invitado" active
-//  la navegación a las pestañas principales sin requerir sesión en Firebase.
+
 
 // Importación de las vistaas
 import PantallaSplash from './screens/PantallaSplash';
@@ -105,7 +101,7 @@ function NavegadorPrincipal() {
   );
 }
 
-// NUEVO: Navegación principal para administradores (solo 3 pestañas)
+
 function NavegadorAdministrador() {
   return (
     <Tab.Navigator
@@ -162,12 +158,12 @@ function NavegadorAdministrador() {
     </Tab.Navigator>
   );
 }
-// FIN DE CAMBIO
+
 
 function Router() {
   const { usuarioActual, modoInvitado, cargando, datosUsuario } = useAuth();
 
-  // Mostrar siempre splash mientras se determina el estado
+ 
   if (cargando || (usuarioActual && !modoInvitado && !datosUsuario)) {
     return <PantallaSplash />;
   }

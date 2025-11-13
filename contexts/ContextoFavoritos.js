@@ -26,15 +26,13 @@ export const ProveedorFavoritos = ({ children }) => {
     };
   }, []);
 
-  //  bloqueo para usuarios invitados en agregar/guardar/cargar.
-  // Función para verificar si un producto es favorito
+  
   const esFavorito = (productoId) => {
     return favoritos.some(fav => fav.id === productoId);
   };
 
-  // Función para agregar producto a favoritos
   const agregarAFavoritos = async (producto) => {
-    // No permitir agregar favoritos si no hay usuario real (incluye invitado)
+    
     if (!usuarioActual || usuarioActual.uid === 'invitado') {
       Alert.alert('Inicia sesión', 'Debes iniciar sesión o crear una cuenta para agregar favoritos');
       return;
@@ -76,7 +74,7 @@ export const ProveedorFavoritos = ({ children }) => {
     }
   };
 
-  // Función para alternar favorito (agregar o eliminar)
+  
   const alternarFavorito = async (producto) => {
     if (esFavorito(producto.id)) {
       await removerDeFavoritos(producto.id);
@@ -103,7 +101,7 @@ export const ProveedorFavoritos = ({ children }) => {
   };
 
   // Función para guardar favoritos en la base de datos
-  // no guardar favoritos para usuarios invitados (evita escribir con uid 'invitado').
+  // no guardar favoritos para usuarios invitados
   const guardarFavoritosEnFirestore = async (favoritosArray) => {
     // No guardar favoritos para usuarios invitados
     if (!usuarioActual || usuarioActual.uid === 'invitado') return;
@@ -119,8 +117,7 @@ export const ProveedorFavoritos = ({ children }) => {
     }
   };
 
-  // Función para cargar favoritos desde la base de datos
-  // evitar cargar favoritos desde Firestore para usuarios invitados.
+ 
   const cargarFavoritosDesdeFirestore = async () => {
     // No cargar favoritos para usuarios invitados
     if (!usuarioActual || usuarioActual.uid === 'invitado') {
@@ -147,7 +144,7 @@ export const ProveedorFavoritos = ({ children }) => {
     }
   };
 
-  // Efecto para cargar favoritos cuando el usuario cambie
+ 
  useEffect(() => {
     let montado = true;
     
@@ -163,7 +160,7 @@ export const ProveedorFavoritos = ({ children }) => {
       montado = false;
     };
   }, [usuarioActual]);
-  // FIN DE CAMBIO
+  
 
   const valor = {
     favoritos,

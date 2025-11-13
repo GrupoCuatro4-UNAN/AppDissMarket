@@ -20,7 +20,9 @@ import {
   getDocs, 
   doc, 
   updateDoc,
-  getDoc 
+  getDoc,
+  increment,
+  writeBatch
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/ContextoAuth';
@@ -31,12 +33,11 @@ export default function PantallaAdministracionPedidos({ navigation }) {
   const [pedidos, setPedidos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [refrescando, setRefrescando] = useState(false);
-  const [filtroEstado, setFiltroEstado] = useState('Todos'); // Todos, Pendientes, En Camino, Entregados
+  const [filtroEstado, setFiltroEstado] = useState('Todos');
   const [modalDetalle, setModalDetalle] = useState(false);
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState(null);
   const [clienteInfo, setClienteInfo] = useState(null);
 
-  // Verificar permisos de admin
   const noEsAdmin = !datosUsuario?.esAdmin;
 
   useEffect(() => {
@@ -45,7 +46,6 @@ export default function PantallaAdministracionPedidos({ navigation }) {
     }
   }, [noEsAdmin]);
 
-  // Verificar permisos de admin DESPUÉS de todos los hooks
   if (noEsAdmin) {
     return (
       <SafeAreaView style={styles.contenedor}>
@@ -66,7 +66,6 @@ export default function PantallaAdministracionPedidos({ navigation }) {
     );
   }
 
-  // Función para cargar todos los pedidos (sin filtro por usuario)
   const cargarPedidos = async () => {
     try {
       setCargando(true);
@@ -97,37 +96,128 @@ export default function PantallaAdministracionPedidos({ navigation }) {
     }
   };
 
-  // Función para refrescar
   const onRefresh = async () => {
     setRefrescando(true);
     await cargarPedidos();
     setRefrescando(false);
   };
 
-  // Función para cambiar estado del pedido
-  const cambiarEstadoPedido = async (pedidoId, nuevoEstado) => {
+  
+  const cambiarEstadoPedido = async (pedidoId, nuevoEstado, pedidoActual) => {
     try {
-      const updates = {
-        estado: nuevoEstado,
-        fechaActualizacion: new Date()
-      };
-
-      // Si se marca como entregado, guardar fecha de entrega
-      if (nuevoEstado === 'entregado') {
-        updates.fechaEntrega = new Date();
-      }
-
-      await updateDoc(doc(db, 'pedidos', pedidoId), updates);
+      const estadoAnterior = pedidoActual.estado;
       
-      Alert.alert('¡Actualizado!', `El pedido ahora está: ${nuevoEstado}`);
-      cargarPedidos();
+      
+      if (nuevoEstado === 'cancelado' && estadoAnterior !== 'cancelado') {
+       
+        Alert.alert(
+          'Cancelar pedido',
+          '¿Deseas devolver el stock de los productos al inventario?',
+          [
+            {
+              text: 'No',
+              style: 'cancel',
+              onPress: async () => {
+                
+                await actualizarEstadoPedido(pedidoId, nuevoEstado);
+              }
+            },
+            {
+              text: 'Sí, devolver stock',
+              onPress: async () => {
+                await cancelarPedidoYDevolverStock(pedidoId, nuevoEstado, pedidoActual);
+              }
+            }
+          ]
+        );
+      } else {
+        
+        const updates = {
+          estado: nuevoEstado,
+          fechaActualizacion: new Date()
+        };
+
+        if (nuevoEstado === 'entregado') {
+          updates.fechaEntrega = new Date();
+        }
+
+        await updateDoc(doc(db, 'pedidos', pedidoId), updates);
+        Alert.alert('¡Actualizado!', `El pedido ahora está: ${nuevoEstado}`);
+        cargarPedidos();
+      }
     } catch (error) {
       console.error('Error al cambiar estado:', error);
       Alert.alert('Error', 'No se pudo actualizar el estado del pedido');
     }
   };
 
-  // Función para obtener información del cliente
+  
+  const actualizarEstadoPedido = async (pedidoId, nuevoEstado) => {
+    try {
+      await updateDoc(doc(db, 'pedidos', pedidoId), {
+        estado: nuevoEstado,
+        fechaActualizacion: new Date()
+      });
+      
+      Alert.alert('¡Actualizado!', 'Pedido cancelado sin modificar el inventario');
+      cargarPedidos();
+    } catch (error) {
+      console.error('Error al actualizar estado:', error);
+      Alert.alert('Error', 'No se pudo actualizar el estado');
+    }
+  };
+
+ 
+  const cancelarPedidoYDevolverStock = async (pedidoId, nuevoEstado, pedidoActual) => {
+    try {
+      console.log('Cancelando pedido y devolviendo stock...');
+      
+      
+      const batch = writeBatch(db);
+
+      
+      const pedidoRef = doc(db, 'pedidos', pedidoId);
+      batch.update(pedidoRef, {
+        estado: nuevoEstado,
+        fechaActualizacion: new Date(),
+        stockDevuelto: true 
+      });
+
+      
+      console.log('Devolviendo stock de productos...');
+      for (const item of pedidoActual.items) {
+        const productoRef = doc(db, 'productos', item.id);
+        
+      
+        const productoSnap = await getDoc(productoRef);
+        if (productoSnap.exists()) {
+         
+          batch.update(productoRef, {
+            stock: increment(item.cantidad),
+            fechaActualizacion: new Date()
+          });
+          
+          console.log(`Devolviendo ${item.cantidad} unidades de ${item.nombre}`);
+        } else {
+          console.warn(`Producto ${item.nombre} (${item.id}) no existe en la base de datos`);
+        }
+      }
+
+     
+      await batch.commit();
+      
+      Alert.alert(
+        '¡Pedido cancelado!', 
+        'El pedido ha sido cancelado y el stock ha sido devuelto al inventario'
+      );
+      
+      cargarPedidos();
+    } catch (error) {
+      console.error('Error al cancelar pedido y devolver stock:', error);
+      Alert.alert('Error', 'No se pudo cancelar el pedido y devolver el stock');
+    }
+  };
+
   const obtenerInfoCliente = async (usuarioId) => {
     try {
       const docRef = doc(db, 'usuarios', usuarioId);
@@ -143,18 +233,13 @@ export default function PantallaAdministracionPedidos({ navigation }) {
     }
   };
 
-  // Función para abrir modal de detalle
   const abrirDetallePedido = async (pedido) => {
     setPedidoSeleccionado(pedido);
-    
-    // Cargar información del cliente
     const info = await obtenerInfoCliente(pedido.usuarioId);
     setClienteInfo(info);
-    
     setModalDetalle(true);
   };
 
-  // Función para formatear fecha
   const formatearFecha = (fecha) => {
     if (!fecha) return 'No disponible';
     
@@ -167,7 +252,6 @@ export default function PantallaAdministracionPedidos({ navigation }) {
     });
   };
 
-  // Función para obtener color del estado
   const obtenerColorEstado = (estado) => {
     switch (estado) {
       case 'pendiente':
@@ -183,7 +267,6 @@ export default function PantallaAdministracionPedidos({ navigation }) {
     }
   };
 
-  // Función para obtener texto del estado
   const obtenerTextoEstado = (estado) => {
     switch (estado) {
       case 'pendiente':
@@ -199,7 +282,6 @@ export default function PantallaAdministracionPedidos({ navigation }) {
     }
   };
 
-  // Filtrar pedidos según estado seleccionado
   const pedidosFiltrados = pedidos.filter(pedido => {
     if (filtroEstado === 'Todos') return true;
     if (filtroEstado === 'Pendientes') return pedido.estado === 'pendiente';
@@ -208,12 +290,10 @@ export default function PantallaAdministracionPedidos({ navigation }) {
     return true;
   });
 
-  // Contar pedidos por estado
   const contarPorEstado = (estado) => {
     return pedidos.filter(p => p.estado === estado).length;
   };
 
-  // Componente de tarjeta de pedido
   const TarjetaPedido = ({ item }) => (
     <TouchableOpacity 
       style={styles.tarjetaPedido}
@@ -249,11 +329,18 @@ export default function PantallaAdministracionPedidos({ navigation }) {
         </View>
       </View>
 
-      {/* NUEVO: Mostrar si el cliente confirmó recepción */}
       {item.clienteConfirmoRecepcion && (
         <View style={styles.confirmacionCliente}>
           <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
           <Text style={styles.textoConfirmacion}>Cliente confirmó recepción</Text>
+        </View>
+      )}
+
+     
+      {item.stockDevuelto && (
+        <View style={styles.stockDevuelto}>
+          <Ionicons name="refresh-circle" size={16} color="#2196F3" />
+          <Text style={styles.textoStockDevuelto}>Stock devuelto al inventario</Text>
         </View>
       )}
 
@@ -266,7 +353,6 @@ export default function PantallaAdministracionPedidos({ navigation }) {
 
   return (
     <SafeAreaView style={styles.contenedor}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.botonAtras}
@@ -282,7 +368,6 @@ export default function PantallaAdministracionPedidos({ navigation }) {
         <View style={styles.espacioVacio} />
       </View>
 
-      {/* Estadísticas */}
       <View style={styles.estadisticas}>
         <View style={[styles.tarjetaEstadistica, { borderColor: '#8B4513' }]}>
           <Ionicons name="receipt-outline" size={24} color="#8B4513" />
@@ -309,7 +394,6 @@ export default function PantallaAdministracionPedidos({ navigation }) {
         </View>
       </View>
 
-      {/* Filtros */}
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
@@ -335,7 +419,6 @@ export default function PantallaAdministracionPedidos({ navigation }) {
         ))}
       </ScrollView>
 
-      {/* Lista de pedidos */}
       {cargando ? (
         <View style={styles.cargandoContainer}>
           <ActivityIndicator size="large" color="#8B4513" />
@@ -362,7 +445,6 @@ export default function PantallaAdministracionPedidos({ navigation }) {
         />
       )}
 
-      {/* Modal de detalle del pedido */}
       <Modal
         visible={modalDetalle}
         animationType="slide"
@@ -383,7 +465,6 @@ export default function PantallaAdministracionPedidos({ navigation }) {
 
               {pedidoSeleccionado && (
                 <>
-                  {/* Información del cliente */}
                   <View style={styles.seccionModal}>
                     <Text style={styles.tituloSeccionModal}>CLIENTE</Text>
                     {clienteInfo ? (
@@ -406,7 +487,6 @@ export default function PantallaAdministracionPedidos({ navigation }) {
                     )}
                   </View>
 
-                  {/* Dirección de envío */}
                   <View style={styles.seccionModal}>
                     <Text style={styles.tituloSeccionModal}>DIRECCIÓN DE ENVÍO</Text>
                     <View style={styles.filaInfoModal}>
@@ -417,7 +497,6 @@ export default function PantallaAdministracionPedidos({ navigation }) {
                     </View>
                   </View>
 
-                  {/* Productos */}
                   <View style={styles.seccionModal}>
                     <Text style={styles.tituloSeccionModal}>PRODUCTOS</Text>
                     {pedidoSeleccionado.items?.map((item, index) => (
@@ -431,7 +510,6 @@ export default function PantallaAdministracionPedidos({ navigation }) {
                     ))}
                   </View>
 
-                  {/* Total */}
                   <View style={styles.totalModalContainer}>
                     <Text style={styles.totalModalLabel}>Total:</Text>
                     <Text style={styles.totalModalValor}>
@@ -439,7 +517,6 @@ export default function PantallaAdministracionPedidos({ navigation }) {
                     </Text>
                   </View>
 
-                  {/* Estado Actual */}
                   <View style={styles.estadoActualContainer}>
                     <Text style={styles.estadoActualLabel}>Estado Actual:</Text>
                     <View style={[
@@ -452,7 +529,6 @@ export default function PantallaAdministracionPedidos({ navigation }) {
                     </View>
                   </View>
 
-                  {/* NUEVO: Mostrar confirmación del cliente */}
                   {pedidoSeleccionado.clienteConfirmoRecepcion && (
                     <View style={styles.confirmacionClienteModal}>
                       <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
@@ -469,14 +545,23 @@ export default function PantallaAdministracionPedidos({ navigation }) {
                     </View>
                   )}
 
-                  {/* Botones de cambio de estado */}
+                 
+                  {pedidoSeleccionado.stockDevuelto && (
+                    <View style={styles.stockDevueltoModal}>
+                      <Ionicons name="refresh-circle" size={24} color="#2196F3" />
+                      <Text style={styles.textoStockDevueltoModal}>
+                        Stock devuelto al inventario
+                      </Text>
+                    </View>
+                  )}
+
                   {pedidoSeleccionado.estado !== 'entregado' && pedidoSeleccionado.estado !== 'cancelado' && (
                     <View style={styles.botonesEstado}>
                       {pedidoSeleccionado.estado === 'pendiente' && (
                         <TouchableOpacity
                           style={[styles.botonCambiarEstado, { backgroundColor: '#2196F3' }]}
                           onPress={() => {
-                            cambiarEstadoPedido(pedidoSeleccionado.id, 'en_camino');
+                            cambiarEstadoPedido(pedidoSeleccionado.id, 'en_camino', pedidoSeleccionado);
                             setModalDetalle(false);
                           }}
                         >
@@ -489,7 +574,7 @@ export default function PantallaAdministracionPedidos({ navigation }) {
                         <TouchableOpacity
                           style={[styles.botonCambiarEstado, { backgroundColor: '#4CAF50' }]}
                           onPress={() => {
-                            cambiarEstadoPedido(pedidoSeleccionado.id, 'entregado');
+                            cambiarEstadoPedido(pedidoSeleccionado.id, 'entregado', pedidoSeleccionado);
                             setModalDetalle(false);
                           }}
                         >
@@ -501,21 +586,8 @@ export default function PantallaAdministracionPedidos({ navigation }) {
                       <TouchableOpacity
                         style={[styles.botonCambiarEstado, { backgroundColor: '#ff4757' }]}
                         onPress={() => {
-                          Alert.alert(
-                            'Cancelar Pedido',
-                            '¿Estás seguro de que deseas cancelar este pedido?',
-                            [
-                              { text: 'No', style: 'cancel' },
-                              {
-                                text: 'Sí, cancelar',
-                                style: 'destructive',
-                                onPress: () => {
-                                  cambiarEstadoPedido(pedidoSeleccionado.id, 'cancelado');
-                                  setModalDetalle(false);
-                                }
-                              }
-                            ]
-                          );
+                          cambiarEstadoPedido(pedidoSeleccionado.id, 'cancelado', pedidoSeleccionado);
+                          setModalDetalle(false);
                         }}
                       >
                         <Ionicons name="close-circle-outline" size={20} color="#fff" />
@@ -709,6 +781,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
   },
+  stockDevuelto: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#e3f2fd',
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  textoStockDevuelto: {
+    fontSize: 14,
+    color: '#2196F3',
+    fontWeight: '600',
+    marginLeft: 8,
+  },
   piePedido: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -847,6 +933,20 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 3,
   },
+  stockDevueltoModal: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#e3f2fd',
+    padding: 15,
+    borderRadius: 15,
+    marginBottom: 20,
+  },
+  textoStockDevueltoModal: {
+    fontSize: 16,
+    color: '#2196F3',
+    fontWeight: 'bold',
+    marginLeft: 10,
+  },
   botonesEstado: {
     marginTop: 10,
   },
@@ -895,4 +995,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-// FIN DE CAMBIO

@@ -21,9 +21,8 @@ export default function PantallaLogin({ navigation }) {
   const [contraseña, setContraseña] = useState("");
   const [mostrarContraseña, setMostrarContraseña] = useState(false);
   const [cargando, setCargando] = useState(false);
-  // entrarComoInvitado(): función del contexto que activa el modo invitado.
-  // Observación: la navegación hacia PrincipalTabs se hace aquí tras llamar a la función.
-  const { entrarComoInvitado } = useAuth(); // NUEVO
+ 
+  const { entrarComoInvitado } = useAuth(); 
 
   const manejarInicioSesion = async () => {
     if (!email.trim() || !contraseña.trim()) {
@@ -140,19 +139,11 @@ export default function PantallaLogin({ navigation }) {
             )}
           </TouchableOpacity>
 
-          {/* NUEVO BOTÓN: Entrar como invitado */}
-          {/* AÑADIDO POR: USUARIO
-              - Llama a entrarComoInvitado() del contexto para activar modo invitado.
-              - navigation.replace('PrincipalTabs') fuerza navegación a las pestañas principales.
-              - Nota: App.js fue modificado para que el Router respete modoInvitado y muestre PrincipalTabs. */}
+       
           <TouchableOpacity
             style={styles.botonInvitado}
             onPress={() => {
-              // Llamar solo a entrarComoInvitado() es suficiente porque el Router
-              // (en App.js) observa `modoInvitado` y re-renderiza la navegación
-              // para mostrar `PrincipalTabs`. Hacer `navigation.replace('PrincipalTabs')`
-              // aquí puede provocar la warning "The action 'REPLACE' ... was not handled"
-              // si la ruta aún no está registrada en el stack actual.
+             
               entrarComoInvitado();
             }}
           >
@@ -256,7 +247,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
-  // NUEVO ESTILO
+  
   botonInvitado: {
     flexDirection: "row",
     backgroundColor: "#f0f0f0",

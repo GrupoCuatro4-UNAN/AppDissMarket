@@ -26,8 +26,7 @@ export default function PantallaCarrito() {
     cvv: ''
   });
 
-  // valida de manera simple que los campos de tarjeta tengan
-  // formato mínimo
+  
   const validarTarjeta = () => {
     const num = tarjeta.numero.replace(/\s/g, '');
     return (
@@ -142,7 +141,7 @@ export default function PantallaCarrito() {
 
         <View style={styles.controlesContainer}>
           <View style={styles.controlesCantidad}>
-            {/* Disminuir cantidad: llama actualizarCantidad con cantidad-1 */}
+          
             <TouchableOpacity
               style={styles.botonCantidad}
               onPress={() => actualizarCantidad(item.id, item.cantidad - 1)}
@@ -150,7 +149,7 @@ export default function PantallaCarrito() {
               <Ionicons name="remove" size={18} color="#666" />
             </TouchableOpacity>
             <Text style={styles.textoCantidad}>{item.cantidad}</Text>
-            {/* Incrementar cantidad: llama actualizarCantidad con cantidad+1 */}
+         
             <TouchableOpacity
               style={styles.botonCantidad}
               onPress={() => actualizarCantidad(item.id, item.cantidad + 1)}
@@ -159,7 +158,7 @@ export default function PantallaCarrito() {
             </TouchableOpacity>
           </View>
 
-          {/* Botón eliminar: llama removerDelCarrito con el id */}
+         
           <TouchableOpacity
             style={styles.botonEliminar}
             onPress={() => removerDelCarrito(item.id)}
@@ -175,7 +174,7 @@ export default function PantallaCarrito() {
     </View>
   );
 
-  // ======= RENDER PRINCIPAL =======
+  
   return (
     <SafeAreaView style={styles.contenedor}>
       {/* Header con logo y eslogan */}
@@ -186,7 +185,7 @@ export default function PantallaCarrito() {
         </View>
       </View>
 
-      {/* Título y subtítulo con número de productos */}
+      
       <View style={styles.tituloContainer}>
         <Text style={styles.titulo}>Mi Carrito</Text>
         <Text style={styles.subtitulo}>
@@ -194,21 +193,21 @@ export default function PantallaCarrito() {
         </Text>
       </View>
 
-      {/* Estados: loading, vacío o lista de items */}
+     
       {cargandoCarrito ? (
-        // Indicador de carga mientras se obtiene el carrito
+       
         <View style={styles.cargandoContainer}>
           <ActivityIndicator size="large" color="#8B4513" />
         </View>
       ) : itemsCarrito.length === 0 ? (
-        // Estado cuando no hay productos
+        
         <View style={styles.sinProductos}>
           <Ionicons name="cart-outline" size={80} color="#ccc" />
           <Text style={styles.textoSinProductos}>Tu carrito está vacío</Text>
           <Text style={styles.subtextoSinProductos}>¡Explora el catálogo y agrega productos!</Text>
         </View>
       ) : (
-        // Lista de productos + resumen y botones de acción
+      
         <>
           <FlatList
             data={itemsCarrito}
@@ -237,7 +236,7 @@ export default function PantallaCarrito() {
             </View>
 
             <View style={styles.filaBotonesFinal}>
-              {/* BOTÓN MÉTODO DE PAGO: abre modal para seleccionar/editar método */}
+            
               <TouchableOpacity
                 style={[
                   styles.botonMetodoPagoCompacto,
@@ -262,7 +261,7 @@ export default function PantallaCarrito() {
                 </Text>
               </TouchableOpacity>
 
-              {/* BOTÓN REALIZAR PEDIDO: llama manejarRealizarPedido */}
+           
               <TouchableOpacity
                 style={[
                   styles.botonRealizarPedidoCompacto,
@@ -285,7 +284,7 @@ export default function PantallaCarrito() {
         </>
       )}
 
-      {/* MODAL DE PAGO: selección de método y (si aplica) formulario de tarjeta */}
+    
       <Modal visible={modalPagoVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContenido}>
@@ -297,7 +296,7 @@ export default function PantallaCarrito() {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-              {/* Opción: EFECTIVO (contra entrega) */}
+             
               <TouchableOpacity
                 style={[styles.opcionPago, metodoPago === 'efectivo' && styles.opcionSeleccionada]}
                 onPress={() => setMetodoPago('efectivo')}
@@ -310,7 +309,7 @@ export default function PantallaCarrito() {
                 {metodoPago === 'efectivo' && <Ionicons name="checkmark-circle" size={28} color="#8B4513" />}
               </TouchableOpacity>
 
-              {/* Opción: TARJETA */}
+             
               <TouchableOpacity
                 style={[styles.opcionPago, metodoPago === 'tarjeta' && styles.opcionSeleccionada]}
                 onPress={() => setMetodoPago('tarjeta')}
@@ -323,7 +322,7 @@ export default function PantallaCarrito() {
                 {metodoPago === 'tarjeta' && <Ionicons name="checkmark-circle" size={28} color="#8B4513" />}
               </TouchableOpacity>
 
-              {/* FORMULARIO TARJETA: solo visible si metodoPago === 'tarjeta' */}
+            
               {metodoPago === 'tarjeta' && (
                 <View style={styles.formularioTarjeta}>
                   <Text style={styles.label}>Número de tarjeta</Text>
@@ -334,7 +333,7 @@ export default function PantallaCarrito() {
                     maxLength={19}
                     value={tarjeta.numero}
                     onChangeText={(text) => {
-                      // Formatea en bloques de 4 dígitos mientras el usuario escribe
+                     
                       const soloNumeros = text.replace(/[^0-9]/g, '');
                       const formateado = soloNumeros.match(/.{1,4}/g)?.join(' ').substr(0, 19) || '';
                       setTarjeta({ ...tarjeta, numero: formateado });
@@ -383,7 +382,7 @@ export default function PantallaCarrito() {
               )}
             </ScrollView>
 
-            {/* Botón para confirmar método de pago: deshabilitado si dato incompleto */}
+           
             <TouchableOpacity
               style={[
                 styles.botonConfirmar,
@@ -404,7 +403,7 @@ export default function PantallaCarrito() {
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: '#f5f5f5' },
 
-  // LOGO + ESLOGAN
+
   header: {
     backgroundColor: '#fff',
     paddingVertical: 25,
