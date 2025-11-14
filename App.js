@@ -19,6 +19,7 @@ import PantallaConfiguracion from './screens/PantallaConfiguracion';
 import PantallaSobreEmpresa from './screens/PantallaSobreEmpresa';
 import PantallaAdministracion from './screens/PantallaAdministracion';
 import PantallaAdministracionPedidos from './screens/PantallaAdministracionPedidos';
+import PantallaDashboard from './screens/PantallaDashboard';
 // Contextos
 import { ProveedorAuth, useAuth } from './contexts/ContextoAuth';
 import { ProveedorCarrito } from './contexts/ContextoCarrito';
@@ -110,6 +111,10 @@ function NavegadorAdministrador() {
           let nombreIcono;
 
           switch (route.name) {
+
+            case 'Dashboard':
+              nombreIcono = focused ? 'stats-chart' : 'stats-chart-outline';
+              break;
             case 'Productos':
               nombreIcono = focused ? 'cube' : 'cube-outline';
               break;
@@ -140,6 +145,12 @@ function NavegadorAdministrador() {
         headerShown: false,
       })}
     >
+
+        <Tab.Screen 
+        name="Dashboard" 
+        component={PantallaDashboard}
+        options={{ tabBarLabel: 'Dashboard' }}
+      />
       <Tab.Screen 
         name="Productos" 
         component={PantallaAdministracion}
