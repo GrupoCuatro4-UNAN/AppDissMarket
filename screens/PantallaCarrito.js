@@ -108,20 +108,20 @@ export default function PantallaCarrito() {
           onPress: async () => {
             setRealizandoPedido(true);
             try {
-              const resultado = await realizarPedido(direccionEnvio);
-              if (resultado.success) {
-                Alert.alert('¡Pedido realizado!', `Tu pedido #${resultado.pedidoId.substring(0, 8).toUpperCase()} ha sido enviado.`);
-              }
-            } catch (err) {
-              Alert.alert('Error', 'No se pudo completar el pedido');
-            } finally {
-              setRealizandoPedido(false);
+                const resultado = await realizarPedido(direccionEnvio, metodoPago, tarjeta);
+            if (resultado.success) {
+              Alert.alert('¡Pedido realizado!', `Tu pedido #${resultado.pedidoId.substring(0, 8).toUpperCase()} ha sido enviado.`);
             }
+          } catch (err) {
+            Alert.alert('Error', 'No se pudo completar el pedido');
+          } finally {
+            setRealizandoPedido(false);
           }
         }
-      ]
-    );
-  };
+      }
+    ]
+  );
+};
 
   const ItemCarrito = ({ item }) => (
     <View style={styles.itemCarrito}>

@@ -127,7 +127,7 @@ export const ProveedorCarrito = ({ children }) => {
   };
 
   
-  const realizarPedido = async (direccionEnvio) => {
+  const realizarPedido = async (direccionEnvio , metodoPago, tarjeta) => {
     console.log('Iniciando proceso de pedido...', { usuarioActual, itemsCarrito });
     
     if (!usuarioActual || usuarioActual.uid === 'invitado') {
@@ -187,7 +187,11 @@ export const ProveedorCarrito = ({ children }) => {
         direccionEnvio: direccionEnvio,
         estado: 'pendiente',
         fechaPedido: new Date(),
-        fechaEntrega: null
+        fechaEntrega: null,
+        metodoPago: metodoPago || 'efectivo', 
+        ...(metodoPago === 'tarjeta' && tarjeta?.numero && {
+    tarjetaUltimosDigitos: tarjeta.numero.replace(/\s/g, '').slice(-4)
+  })
       };
 
       console.log('Datos del pedido:', pedido);

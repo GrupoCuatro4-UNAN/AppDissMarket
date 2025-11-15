@@ -508,6 +508,24 @@ export default function PantallaAdministracionPedidos({ navigation }) {
                   </View>
 
                   <View style={styles.seccionModal}>
+  <Text style={styles.tituloSeccionModal}>MÉTODO DE PAGO</Text>
+  <View style={styles.filaInfoModal}>
+    <Ionicons 
+      name={pedidoSeleccionado.metodoPago === 'efectivo' ? 'cash-outline' : 'card-outline'} 
+      size={20} 
+      color="#666" 
+    />
+    <Text style={styles.textoInfoModal}>
+      {pedidoSeleccionado.metodoPago === 'efectivo' 
+        ? 'Contra entrega (Efectivo)' 
+        : pedidoSeleccionado.metodoPago === 'tarjeta'
+        ? `Tarjeta ••••${pedidoSeleccionado.tarjetaUltimosDigitos || '****'}`
+        : 'No especificado'}
+    </Text>
+  </View>
+</View>
+
+                  <View style={styles.seccionModal}>
                     <Text style={styles.tituloSeccionModal}>PRODUCTOS</Text>
                     {pedidoSeleccionado.items?.map((item, index) => (
                       <View key={index} style={styles.itemProductoModal}>

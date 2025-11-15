@@ -317,7 +317,7 @@ export default function PantallaDashboard({ navigation }) {
   <BarChart
   data={{
     labels: productosMasVendidos.map(p => {
-      // Truncar a máximo 6 caracteres
+      
       if (p.nombre.length > 6) {
         return p.nombre.substring(0, 6);
       }
