@@ -105,7 +105,7 @@ export default function PantallaDashboard({ navigation }) {
       setTotalPedidos(pedidos.length);
       setPedidosPendientes(pendientes);
       
-      // Preparar datos de estados para gráfico de pastel
+   
       const datosEstados = [
         {
           name: 'Pendiente',
@@ -138,13 +138,13 @@ export default function PantallaDashboard({ navigation }) {
       ];
       setEstadosPedidos(datosEstados);
       
-      // Calcular ventas por mes (últimos 6 meses)
+     
       calcularVentasPorMes(pedidos);
       
       // Calcular productos más vendidos
       calcularProductosMasVendidos(pedidos);
       
-      // Cargar productos
+      
       const productosSnapshot = await getDocs(collection(db, 'productos'));
       setTotalProductos(productosSnapshot.size);
       
@@ -160,7 +160,7 @@ export default function PantallaDashboard({ navigation }) {
     const ahora = new Date();
     const ventasMensuales = {};
     
-    // Inicializar últimos 6 meses
+   
     for (let i = 5; i >= 0; i--) {
       const fecha = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
       const key = `${fecha.getFullYear()}-${fecha.getMonth()}`;
@@ -202,11 +202,11 @@ export default function PantallaDashboard({ navigation }) {
       }
     });
     
-    // Convertir a array y ordenar
+   
     const productosArray = Object.entries(contadorProductos)
       .map(([nombre, cantidad]) => ({ nombre, cantidad }))
       .sort((a, b) => b.cantidad - a.cantidad)
-      .slice(0, 5); // Top 5
+      .slice(0, 5); 
     
     setProductosMasVendidos(productosArray);
   };
@@ -261,7 +261,7 @@ export default function PantallaDashboard({ navigation }) {
           </View>
         ) : (
           <>
-            {/* Tarjetas de métricas principales */}
+          
             <View style={styles.metricas}>
               <View style={[styles.tarjetaMetrica, { backgroundColor: '#4CAF50' }]}>
                 <Ionicons name="cash-outline" size={32} color="#fff" />
@@ -313,23 +313,34 @@ export default function PantallaDashboard({ navigation }) {
             {productosMasVendidos.length > 0 && (
               <View style={styles.seccionGrafico}>
                 <Text style={styles.tituloGrafico}>🏆 Top 5 Productos Más Vendidos</Text>
-                <BarChart
-                  data={{
-                    labels: productosMasVendidos.map(p => 
-                      p.nombre.length > 10 ? p.nombre.substring(0, 10) + '...' : p.nombre
-                    ),
-                    datasets: [{
-                      data: productosMasVendidos.map(p => p.cantidad)
-                    }]
-                  }}
-                  width={screenWidth - 40}
-                  height={220}
-                  chartConfig={chartConfig}
-                  style={styles.grafico}
-                  yAxisLabel=""
-                  yAxisSuffix=" u"
-                  fromZero
-                />
+                
+  <BarChart
+  data={{
+    labels: productosMasVendidos.map(p => {
+      // Truncar a máximo 6 caracteres
+      if (p.nombre.length > 6) {
+        return p.nombre.substring(0, 6);
+      }
+      return p.nombre;
+    }),
+    datasets: [{
+      data: productosMasVendidos.map(p => p.cantidad)
+    }]
+  }}
+  width={screenWidth - 40}
+  height={220}
+  chartConfig={{
+    ...chartConfig,
+    barPercentage: 0.6,
+  }}
+  style={styles.grafico}
+  yAxisLabel=""
+  yAxisSuffix=" u"
+  fromZero
+  showValuesOnTopOfBars
+/>
+  
+
                 
                 {/* Lista detallada de productos */}
                 <View style={styles.listaProductos}>

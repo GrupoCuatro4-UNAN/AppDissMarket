@@ -287,6 +287,7 @@ export default function PantallaAdministracionPedidos({ navigation }) {
     if (filtroEstado === 'Pendientes') return pedido.estado === 'pendiente';
     if (filtroEstado === 'En Camino') return pedido.estado === 'en_camino';
     if (filtroEstado === 'Entregados') return pedido.estado === 'entregado';
+    if (filtroEstado === 'Cancelados') return pedido.estado === 'cancelado'; 
     return true;
   });
 
@@ -392,7 +393,16 @@ export default function PantallaAdministracionPedidos({ navigation }) {
           <Text style={styles.numeroEstadistica}>{contarPorEstado('entregado')}</Text>
           <Text style={styles.textoEstadistica}>Entregados</Text>
         </View>
+
+         <View style={[styles.tarjetaEstadistica, { borderColor: '#ff4757' }]}>
+    <Ionicons name="close-circle-outline" size={24} color="#ff4757" />
+    <Text style={styles.numeroEstadistica}>{contarPorEstado('cancelado')}</Text>
+    <Text style={styles.textoEstadistica}>Cancelados</Text>
+  </View>
+
       </View>
+
+      
 
       <ScrollView 
         horizontal 
@@ -400,7 +410,7 @@ export default function PantallaAdministracionPedidos({ navigation }) {
         style={styles.filtrosContainer}
         contentContainerStyle={styles.filtrosContenido}
       >
-        {['Todos', 'Pendientes', 'En Camino', 'Entregados'].map((filtro) => (
+        {['Todos', 'Pendientes', 'En Camino', 'Entregados', 'Cancelados'].map((filtro) => (
           <TouchableOpacity
             key={filtro}
             style={[
@@ -640,37 +650,43 @@ const styles = StyleSheet.create({
   },
   estadisticas: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-around',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 15,
     backgroundColor: '#fff',
     marginBottom: 10,
   },
   tarjetaEstadistica: {
     alignItems: 'center',
     backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 15,
+    padding: 10,
+    borderRadius: 12,
     borderWidth: 2,
-    minWidth: 80,
+    minWidth: 65,
+    marginBottom: 10,
   },
   numeroEstadistica: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#333',
     marginTop: 5,
   },
   textoEstadistica: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#666',
     marginTop: 5,
+     textAlign: 'center',
   },
   filtrosContainer: {
     maxHeight: 60,
+    backgroundColor: '#fff',  
+  paddingVertical: 5, 
   },
   filtrosContenido: {
     paddingHorizontal: 20,
     paddingVertical: 10,
+    alignItems: 'center',
   },
   botonFiltro: {
     paddingHorizontal: 20,
@@ -678,6 +694,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: '#f0f0f0',
     marginRight: 10,
+      minHeight: 40,          
+  justifyContent: 'center', 
+  alignItems: 'center',
   },
   botonFiltroActivo: {
     backgroundColor: '#8B4513',
